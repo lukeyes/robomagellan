@@ -9,7 +9,7 @@
 
 int TTY;
 
-int  open_gps() {
+int open_gps() {
   struct termios gps_term;
 
   TTY = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);

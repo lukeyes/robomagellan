@@ -10,6 +10,7 @@
  *		  of the task.
  *
  *  Author:	Michael Ortiz (mtortiz.mail@gmail.com)
+ *  Modified:	Scott Hollwedel (s.hollwedel@gmail.com)(1/22/10)
  */
 
 #include <termios.h>
@@ -18,158 +19,173 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <signal.h>
 
-#define I2CD_CMD  0x53
 #define I2C_CMD   0x55
-#define CM01_CMD  0x5a
+#define SONAR_LAST_ADDR 0xE0
 
 int debug = 0; //Set to 1 if want debug messages displayed
+static int to = 0; //Timeout flag
 
-
-/*	This function takes the address of the USB-I2C connected sonar
- *	device (SRF008) and returns the the distance between the sonar
- *	sensor and the nearest object in inches.
- *
- *	Note: 	This function will continue executing until valid data
- *			is received from the sensor.
- */
-int get_distance(char address)
+void timeout()
 {
-   struct termios camera_term, old_term;
-   
-   int tty, res, screen, i;
-   if(debug)
-   	  fprintf(stderr, "Setting up tty device...\n");
-   tty = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
+	to = 1;
+}
 
-   /*Set serial port settings*/
-   tcgetattr(tty, &old_term);
-   camera_term.c_cflag = B19200;
-   camera_term.c_cflag |= CS8;
-   camera_term.c_cflag |= CREAD;
-//   camera_term.c_cflag = CSTOPB;
-   camera_term.c_iflag = IGNPAR | IGNBRK;
-   camera_term.c_cflag |= CLOCAL;
-   if(debug)
-      fprintf(stderr, "Flushing tty...\n");
-   tcflush(tty, TCOFLUSH);
-   tcsetattr(tty,TCSANOW,&camera_term);
+int initialize_i2c()
+{
+	struct termios i2c_term;
+	int tty;
+	//Took out O_NDELAY
+	tty = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY);
 
-
-	char sbuf[100];
-	char rbuf[4];
-	int search_address = address;
-
-
-	char status = -1;
-	unsigned int distance=0;
-	int j;
-    sbuf[100];
-    rbuf[4];
-
-    if(debug)
-      fprintf(stderr, "Setting gain...\n");
-	sbuf[0] = I2C_CMD;			// send gain limit
-	sbuf[1] = search_address;
-	sbuf[2] = 0x01;
-	sbuf[3] = 0x01;
-	sbuf[4] = 20;
-    write(tty, &sbuf, 5);
-    if(debug)
-       fprintf(stderr, "Waiting on status...\n");
-    status = -1;
-    j=0;
-	while (status == -1) {
-	  read(tty, &status, 1);
-    }
-    if(debug)
-       fprintf(stderr, "\nstatus after gain set is: %d\n", status);
-	
-    if(debug)
-       fprintf(stderr, "Ranging...\n");
-	sbuf[0] = I2C_CMD;			// send sonar ranging inches command
-	sbuf[1] = search_address;
-	sbuf[2] = 0x00;
-	sbuf[3] = 0x01;
-	sbuf[4] = 0x50;
-    status = -1;
-    write(tty, &sbuf, 5);
-	usleep(70000); //sleep for 70 ms
-    while (status == -1) {
-      read(tty, &status, 1);
-    }
-    if(debug)
-       fprintf(stderr, "status after range set is: %d\n", status);
-	
-	usleep(70000);
-	
-	while (1) {
-      
-      if(debug)
-         fprintf(stderr, "Reading range...\n");
-	  sbuf[0] = I2C_CMD;			// receive sonar ranging inches command
-	  sbuf[1] = search_address+1;
-	  sbuf[2] = 0x02;
-	  sbuf[3] = 0x02;
-      rbuf[0] = -1;
-	  usleep(65000);
-	  write(tty,&sbuf,4);
-	  usleep(5000);
-      while (rbuf[0] == -1) {
-         read(tty, &rbuf, 2);
-      }
-      if(debug)
-         fprintf(stderr, "Reading %x rbuf[0] rbuf[1] is: %x %x\n", search_address, rbuf[0], rbuf[1]);
+   	/*Set serial port settings*/
+	tcgetattr(tty,&i2c_term);
+	cfsetispeed(&i2c_term, B19200);
+	cfsetospeed(&i2c_term, B19200);
+	i2c_term.c_cflag |= (CLOCAL | CREAD);
+	i2c_term.c_cflag |= CSTOPB; //2 Stop bits
+	i2c_term.c_cflag &= ~PARENB;//No parity
+	i2c_term.c_cflag &= ~CSIZE;
+   	i2c_term.c_cflag |= CS8;//8 bits  			
  
-      distance = rbuf[0]<<8;
-      distance |= rbuf[1];
+	tcflush(tty, TCIFLUSH) ;				
+        tcsetattr(tty,TCSANOW,&i2c_term) ;			
 
-	  /*Data in this range is invalid.
-	    Ranges above 236 are not reliable*/
-	  if(distance > 236 || distance < 0){
-	  	usleep(10000);
-	  }
-	  else {
-   		tcflush(tty, TCOFLUSH);
-		close(tty);
-   		return distance;
-	  }
+	
+	return tty;	
+}
+
+int initialize_sonar(int tty)
+{
+	char buf[5];
+	int address = 0xE0; //Address of 1st sensor
+
+	// Set new range(6m)
+	while ( address <= SONAR_LAST_ADDR )
+	{
+		buf[0] = I2C_CMD; 
+		buf[1] = address; //Device add + w/r bit
+		buf[2] = 0x02; //Register
+		buf[3] = 0x01; //# of bytes
+		buf[4] = 140; //Data - 140 corresponds to 6m
+		write(tty, &buf, sizeof(buf));
+		printf("Wrote new range to: %x\n",address);
+		address= address + 2;
+		sleep(1);
+		tcflush(tty,TCIOFLUSH);
 	}
+
+	address = 0xE0;
+	// Set new gain corresponding to range
+	while ( address <= SONAR_LAST_ADDR )
+	{
+		buf[0] = I2C_CMD; 
+		buf[1] = address; //Device add + w/r bit
+		buf[2] = 0x01; //Register
+		buf[3] = 0x01; //# of bytes
+		buf[4] = ; //Data - 31 is default(play with to decrease time)
+		write(tty, &buf, sizeof(buf));
+		printf("Wrote new gain to: %x\n",address);
+		address = address + 2;
+		sleep(1);
+		tcflush(tty,TCIOFLUSH);
+	}
+
+	return 0;
 }
 
-
-double get_front_sonar()
+int take_range( int tty )
 {
-	double distance_center = 0;
-	distance_center = get_distance(0xe2);
-	return distance_center;
+	char buf[5];
+	int address = 0xE0; //Address of 1st sensor
+
+	// Take range
+	while ( address <= SONAR_LAST_ADDR )
+	{
+		buf[0] = I2C_CMD; 
+		buf[1] = address; //Device add + w/r bit
+		buf[2] = 0x00; //Register
+		buf[3] = 0x01; //# of bytes
+		buf[4] = 80; //Data - 80 = inches, 81 = cm, 82 = uc
+		write(tty, &buf, sizeof(buf));
+		address = address + 2;
+	}
+
+	return 0;
 }
 
-double get_right_sonar()
+int get_range(int tty, unsigned int * output)
 {
-	double distance_right = 0;
-	distance_right = get_distance(0xe0);
-	return distance_right;
-}
+	char buf[4];
+	unsigned char outbuf[1];
+	int address = 0xE0; //Address of 1st sensor
+	int count = 0;
+	int reg = 2;
+
+	// Get range
+	while ( address <= SONAR_LAST_ADDR )
+	{
+		tcflush(tty,TCIFLUSH);
+		outbuf[0] = 0;
+		outbuf[1] = 0;
+
+		//Get high bit
+		buf[0] = I2C_CMD; 
+		buf[1] = address + 1; //Device add + w/r bit
+		buf[2] = 0x02; //Register
+		buf[3] = 0x01; //# of bytes
+		//output[count] = outbuf[0] << 8;
+		printf("Reading Registers...\n");
+		while(reg < 36)
+		{
+			buf[2] = reg;
+			if(write(tty, &buf, sizeof(buf)) < 0)
+			{
+				perror("Write failed");
+			}
+			printf("Reading Register\n");	
+			if(read(tty,&outbuf,1) < 0)
+			{
+				perror("Read failed");
+			}
+			
+			
+			printf("Address: %x, Reg: %d, Value: %d\n",address, reg, outbuf[0]);
+			reg++;
+		}
+		//output[count] = outbuf[0] + output[count];
+
+		address = address + 2;
+		count++;
+	}
+	return 0;
+} 
+
 
 //For Debug
-/*int main(int argc, char * argv[])
-{
-	if(argc > 1){
-		fprintf(stderr, "argv[0]: %s\n", argv[0]);
-		fprintf(stderr, "argv[1]: %s\n", argv[1]);
-		if(*(argv[1] + 1) == 'd')
-			debug = 1;
+int main()
+{	
+	int tty = initialize_i2c();
+	unsigned int buf[2];
+	int count = 0;
+
+	initialize_sonar(tty);
+	printf("Finished Initializing...\n");
+	
+	while( count < 1 )
+	{
+		printf("Taking Range...\n");
+		take_range(tty);
+		usleep(70000);
+		printf("Getting Range..\n");
+		get_range(tty, buf);
+		//printf("Ouput: %d %d\n", buf[0], buf[1] );
+		count++;
 	}
-	int distance_center = 0;
-	int distance_right = 0;	
-	//sleep(1);
-	while (1) {
-		usleep(100000);
-		distance_center = get_distance(0xe2);
-		fprintf(stderr,"e2: distance is: %u\n",distance_center);
-		distance_right = get_distance(0xe0);
-		fprintf(stderr,"e0: distance is: %u\n",distance_right);
-	}
-	//fprintf(stderr,"e0: distance is: %u\n",get_distance(tty,0xe0));
-}*/
+	close(tty);
+	return 0;
+
+}
+
+
