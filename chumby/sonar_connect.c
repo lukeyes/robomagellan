@@ -18,6 +18,7 @@
 #define RANGE 140
 #define GAIN 0
 
+
 int to = 0; //Timeout
 
 void timeout()
@@ -38,7 +39,7 @@ int initialize_sonar(int tty)
 		write_i2c(tty, address + 1, 0, 1, 0);
 		read(tty,&output,1);
 		address = address + 2;
-		if(output != 10 || to == 1)
+		if(output != 10)
 		{
 			fprintf(stderr, "Sonar is broken.\n");
 			return -1;
@@ -69,46 +70,32 @@ int take_range( int tty )
 {
 	int address = SONAR_FIRST_ADDR; //Address of 1st sensor
 	int output = 0;
-
 	// Take range
 	while ( address <= SONAR_LAST_ADDR )
 	{
 		write_i2c(tty, address, 0, 1,80);
 		read(tty, &output, 1);
 		address = address + 2;
-		usleep(60000); //Delay for sent pulses, can be removed if sonar facing in different directions
+		usleep(100000); //Delay for sent pulses, can be removed if sonar facing in different directions
 	}
 
 	return 0;
 }
 
-int get_range(int tty, int * output)
+int get_left_range(int tty)
 {
-	unsigned char outbuf[1];
-	int address = SONAR_FIRST_ADDR; //Address of 1st sensor
-	int count = 0;
-
-	// Get range
-	while ( address <= SONAR_LAST_ADDR )
-	{
-		outbuf[0] = 0;
-		outbuf[1] = 0;
-		
-		//Get data from reg 2 and 3
-		write_i2c(tty, address + 1, 2, 2, 0);
-		read(tty,&outbuf,2);
-
-		//Put data into output array
-		output[count] = (outbuf[0] << 8) + outbuf[1];
-		
-		//Verify Data - min <-> max in inches
-		if ( output[count] > 0 && output[count] < 255)
-		{
-			count++;
-			address = address + 2;
-		}
-	}
-	return 0;
+	int output = 0;
+	write_i2c(tty, 0xE1, 3, 1, 0);
+	read(tty,&output,1);
+	return output;
 } 
+
+int get_right_range( int tty)
+{
+	int output = 0;
+	write_i2c(tty, 0xE3, 3, 1, 0);
+	read(tty, &output,1);
+	return output;
+}
 
 

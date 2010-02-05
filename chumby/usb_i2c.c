@@ -38,4 +38,5 @@ int write_i2c(int tty, int address, int reg, int nbytes, int data)
 	buf[3] = nbytes;
 	buf[4] = data;
 	write(tty, &buf,sizeof(buf));
+	return 0;
 }

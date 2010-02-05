@@ -7,33 +7,38 @@
 #include <math.h>
 #include "main.h"
 
-int TTY;
-
-int open_gps() {
+int initialize_gps()
+{
+  int tty;
   struct termios gps_term;
 
-  TTY = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
-  tcgetattr(TTY, &gps_term);
-
+  tty = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
+  tcgetattr(tty, &gps_term);
   gps_term.c_cflag = B4800;
   gps_term.c_cflag |= CS8;
   gps_term.c_cflag |= CREAD;
   gps_term.c_iflag = IGNPAR | IGNBRK;
   gps_term.c_cflag |= CLOCAL;
-  tcsetattr(TTY,TCSANOW,&gps_term);
-  tcflush(TTY, TCOFLUSH);
-  tcflush(TTY, TCIFLUSH);
-  return TTY;
+  tcsetattr(tty,TCSANOW,&gps_term);
+
+  return tty;
 }
 
-void ReadData(double data[], int TTY) {
+
+/*int  main() {
+
+
+
+
+   double data[BUFSIZ];
    char buf[BUFSIZ];
+   char buftrim[70];
    char word[7][50];
    char * pStr;
    char * tmp;
    int i;
    int res;
-   /*Variables needed from $GPRMC string*/
+   //Variables needed from $GPRMC string
    char status[BUFSIZ];
    float longitude;
    //char long_direction;
@@ -41,28 +46,41 @@ void ReadData(double data[], int TTY) {
    //char lat_direction;
    float bearing;
    float current_direction;
+int j;
+while(1){
+    j=0;
+    res = read(TTY, buf, BUFSIZ);
+    for(j=0;j<sizeof(buf);j++)
+    {
+        if(buf[j] == '$' && buf[j+5] == 'C')
+            break;
+        else
+          buf[j]=' ';
+    }
 
-   res = read(TTY, buf, BUFSIZ);
-
-   if(buf[0]=='$' && buf[1]=='G' && buf[2]=='P' && buf[3]=='R' && buf[4]=='M' && buf[5]=='C')
-   {
-      for(i=0;buf[i]!='\0';i++)
+//      fprintf(stderr, "%c %c %c %c %c",buf[j],buf[j+1],buf[j+2],buf[j+3],buf[j+4]);
+      for(i=j;i<j+70;i++)
       {
+//        fprintf(stderr,"%c",buf[i]);
          if(buf[i]==',')
             buf[i] = ' ';
+         buftrim[i-j] = buf[i];
+//         fprintf(stderr,"%c",buf[i]);
       }
-
-      sscanf(buf,"%*s %*s %s %f %*s %f %*s %f %f %*s %*s %*s %*s",status,&latitude,&longitude,&bearing,&current_direction);
+//      fprintf(stderr,"%s\n\n",buftrim);
+      sscanf(buftrim,"%*s %*f %s %f %*s %f %*s %f %f %*s %*s %*s %*s",status,&latitude,&longitude,&bearing,&current_direction);
 
       data[0] = latitude;
       data[1] = longitude;
-//      printf("%s --- %f --- %f --- %f --- %f\n",status,latitude,longitude,bearing,current_direction);
+      fprintf(stderr,"latitude: %f\n",data[0]);
+      fprintf(stderr,"longitude: %f\n",data[1]);
+//      fprintf(stderr,"%s --- %f --- %f --- %f --- %f\n",status,latitude,longitude,bearing,current_direction);
 
 //      printf("%s", buf);
-//     sleep(1);
-   }
-}
-
+    sleep(1);  
+ }
+}*/
+/*
 double Delta(double a, double b)
 {
         return a - b;
@@ -104,8 +122,8 @@ int CalcQuadrant(double coneLat, double coneLong, double carLat, double carLong)
                         return QUAD2;
         }
 }
-
-double CalcNRef(int quadrant, double coneLat, double coneLong, double carLat,
+*/
+/*double CalcNRef(int quadrant, double coneLat, double coneLong, double carLat,
                 double carLong)
 {
         double deltaX, deltaY;
@@ -130,8 +148,8 @@ double CalcNRef(int quadrant, double coneLat, double coneLong, double carLat,
         angle = atan(deltaY / deltaX);
         return 90 - (180 / (M_PI)) * angle;
 }
-
-int Turn(int quadrant, double nRef, double heading)
+*/
+/*int Turn(int quadrant, double nRef, double heading)
 {
         double refLineAngle = 0.0; // angle from North to line containing robot and cone (counter clockwise)
         double headingMinusRefAngle = 0.0; // compass heading minus refLineAngle wrt North
@@ -146,9 +164,9 @@ int Turn(int quadrant, double nRef, double heading)
                 refLineAngle = (90 * quadrant) + (90 - nRef);
         else if ((quadrant == QUAD2) || (quadrant == QUAD0))
                 refLineAngle = (90 * quadrant) + nRef;
-
+*/
         /*printf("refLineAngle: %f\n", refLineAngle);*/
-        if (heading < OppositeAngle(refLineAngle))
+/*        if (heading < OppositeAngle(refLineAngle))
                 headingMinusRefAngle = heading - refLineAngle;
         else if (heading >= OppositeAngle(refLineAngle))
                 headingMinusRefAngle = refLineAngle - heading;
@@ -206,7 +224,7 @@ int Turn(int quadrant, double nRef, double heading)
         }
         return retVal;
 }
-
+*/
 /* -----------------------------------------------------------------------------
  * Function: DirectionTo()
  * Purpose: To find the direction to a certain location given the point to go
@@ -219,6 +237,7 @@ int Turn(int quadrant, double nRef, double heading)
  *  - coneLong: The longitude we want to get to.
  * Return value: Returns the direction we need to go to.
  * -------------------------------------------------------------------------- */
+/*
 double DirectionTo (double carLat, double carLong, double coneLat,
         double coneLong) {
         int quadrant = CalcQuadrant (carLat, carLong, coneLat, coneLong);
@@ -236,7 +255,9 @@ double DirectionTo (double carLat, double carLong, double coneLat,
                 refLineAngle += 360;
 
         return refLineAngle;
-}
+
+*/
+//}
 
 /* -----------------------------------------------------------------------------
  * Function: DistanceBetween()
@@ -249,7 +270,7 @@ double DirectionTo (double carLat, double carLong, double coneLat,
  *  - coord2Long: Longitude of second coordinate.
  * Return value: Returns the distance, in inches, between the two coordinates.
  * -------------------------------------------------------------------------- */
-double DistanceBetween (double coord1Lat, double coord1Long, double coord2Lat,
+/*double DistanceBetween (double coord1Lat, double coord1Long, double coord2Lat,
         double coord2Long) {
         double deltaLat = coord1Lat - coord2Lat;
         double deltaLong = coord1Long - coord2Long;
@@ -269,4 +290,4 @@ int get_turn_value (double coneLat, double coneLong,int tty,double carLat, doubl
         heading = get_heading();
         turnValue = Turn(quadrant, nref, heading);
         return turnValue;
-}
+}*/
