@@ -1,1 +1,1 @@
-arm-linux-gcc main_debug.c sonar_connect.c usb_i2c.c pwm_control.c gps.c -o debug
+arm-linux-gcc main_debug.c sonar.o compass.o usb_i2c.o pwm_control.o gps.c -o debug

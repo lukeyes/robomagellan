@@ -9,9 +9,9 @@ g - gps
 
 int sonar_debug()
 {
-	int tty_sonar = initialize_i2c();
 	int sonar[2] = {0,0};
 	int count = 0;
+	int tty_sonar = initialize_i2c();
 
 	//Initialization
 	if (initialize_sonar(tty_sonar) < 0)
@@ -20,12 +20,12 @@ int sonar_debug()
 	}
 
 	//Main code
-	while( count < 30 )
+	while( count < 10 )
 	{
 		take_range(tty_sonar);
 		usleep(60000);
 		printf("Output from E0: %d\n", get_left_range(tty_sonar));
-		printf("Output from E2: %d\n", get_right_range(tty_sonar));
+		//printf("Output from E2: %d\n", get_right_range(tty_sonar));
 		
 		count++;
 	}
@@ -41,100 +41,51 @@ int pwm_debug()
 }
 
 int compass_debug()
-{
+{	
+	int tty_compass = initialize_i2c();
+	printf("Heading: %d",get_heading(tty_compass));
+	close(tty_compass);
 	return 0;
 }
 
 int gps_debug()
 {
-   int TTY = initialize_gps();
-   double data[BUFSIZ];
-   char buf[BUFSIZ];
-   char buftrim[70];
-   char word[7][50];
-   char * pStr;
-   char * tmp;
-   int i;
-   int res;
-   /*Variables needed from $GPRMC string*/
-   char status[BUFSIZ];
-   float longitude;
-   //char long_direction;
-   float latitude;
-   //char lat_direction;
-   float bearing;
-   float current_direction;
-   int j;
-while(1){
-    j=0;
-    res = read(TTY, buf, BUFSIZ);
-    for(j=0;j<sizeof(buf);j++)
-    {
-        if(buf[j] == '$' && buf[j+5] == 'C')
-            break;
-        else
-          buf[j]=' ';
-    }
-
-//      fprintf(stderr, "%c %c %c %c %c",buf[j],buf[j+1],buf[j+2],buf[j+3],buf[j+4]);
-      for(i=j;i<j+70;i++)
-      {
-//        fprintf(stderr,"%c",buf[i]);
-         if(buf[i]==',')
-            buf[i] = ' ';
-         buftrim[i-j] = buf[i];
-//         fprintf(stderr,"%c",buf[i]);
-      }
-//      fprintf(stderr,"%s\n\n",buftrim);
-      sscanf(buftrim,"%*s %*f %s %f %*s %f %*s %f %f %*s %*s %*s %*s",status,&latitude,&longitude,&bearing,&current_direction);
-
-      data[0] = latitude;
-      data[1] = longitude;
-      fprintf(stderr,"latitude: %f\n",data[0]);
-      fprintf(stderr,"longitude: %f\n",data[1]);
-//      fprintf(stderr,"%s --- %f --- %f --- %f --- %f\n",status,latitude,longitude,bearing,current_direction);
-
-//      printf("%s", buf);
-    sleep(1);  
- }
-	return 0;
+   	int tty_gps = initialize_gps();
+   	char buf[100]; //not sure of size yet
+   	read(tty_gps, buf, sizeof(buf));
+   	return 0;
 }
 
 
 int main(int argc, char **argv)
 {
-	int sonar = 0;
-	int pwm = 0;
-	int compass = 0;
-	int gps = 0;
-	int ch = 0;
-	while ((ch = getopt(argc, argv, "svcg")) != -1) 
+	printf("ROBOMAGELLAN TEST PROGRAM\n");
+	
+	printf("Initialize\n");
+	int i2c = initialize_i2c();
+	initialize_motor();
+	initialize_sonar(i2c);
+	int count = 0;
+	int dummy = 0;
+	
+	printf("Test Sonar\n");
+	while (count < 10)
 	{
-		switch(ch)
-		{
-			case 's':
-				sonar = 1;
-				break;
-			case 'v':
-				pwm = 1;
-				break;
-			case 'c':
-				compass = 1;
-				break;
-			case 'g':
-				gps = 1;
-				break;
-		}
+		take_range(i2c);
+		usleep(50000);
+		printf("%d %d\n",get_left_range(i2c), get_right_range(i2c));
+		count++;
 	}
-		
-	if (sonar == 1)
-		sonar_debug();
-	if (pwm == 1)
-		pwm_debug();
-	if (compass == 1)
-		compass_debug();
-	if (gps == 1)
-		gps_debug();
+	
+	count = 0;
+	printf("Test Compass\n");
+	while(count < 10)
+	{
+		printf("%d\n",get_heading(i2c));
+		count++;
+	}
 
-	return 0;
+	printf("Test GPS\n");
+	printf("Test Camera\n");
+	printf("Test Motor Control\n");
 }

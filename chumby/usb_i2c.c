@@ -11,7 +11,7 @@ int initialize_i2c()
 {
 	struct termios i2c_term;
 	int tty;
-	tty = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY );
+	tty = open("/dev/i2c", O_RDWR | O_NOCTTY );
 
    	/*Set serial port settings*/
 	tcgetattr(tty,&i2c_term);
