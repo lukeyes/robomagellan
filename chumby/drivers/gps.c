@@ -7,8 +7,8 @@
 
 struct location 
 {
-	long int int_lat;
-	long int int_long;
+	double int_lat;
+	double int_long;
 };
 
 //Temp for testing
@@ -22,10 +22,10 @@ int initialize_gps()
   int tty;
   struct termios gps_term;
 
-  tty = open("/dev/gps", O_RDWR | O_NOCTTY | O_NDELAY);
+  tty = open("/dev/gps", O_RDWR | O_NOCTTY);
   tcgetattr(tty, &gps_term);
   cfmakeraw(&gps_term);
-  cfsetspeed(&gps_term, B38400);
+  cfsetspeed(&gps_term, B4800);
   gps_term.c_cflag = CS8 | CLOCAL | CREAD;
   gps_term.c_iflag = IGNPAR | IGNBRK;
   gps_term.c_cc[VTIME] = 10;
@@ -38,14 +38,13 @@ int initialize_gps()
 void convert_latitude(char * lat, struct location* position)
 {
 	int count;
-	long int mult = 1;
+	double mult = .0001;
 	position->int_lat = 0;
 	for(count = 8;count > 4;count--)
 	{ 
 		position->int_lat = position->int_lat + ((lat[count]-48)*mult); 
 		mult = mult*10;
 	}
-
 	for(count = 3;count >= 0;count--)
 	{
 		position->int_lat = position->int_lat + ((lat[count]-48)*mult); 
@@ -56,7 +55,7 @@ void convert_latitude(char * lat, struct location* position)
 void convert_longitude(char * lon, struct location* position)
 {
 	int count;
-	long int mult = 1;
+	double mult = .0001;
 	position->int_long = 0;
 	for(count = 9;count > 5;count--)
 	{ 
@@ -82,19 +81,24 @@ void get_gps(int tty_gps, struct location* position)
 	int found = 0;
 	
 	//Disregard data until $GPRMC is found
-	tcflush(tty_gps,TCIFLUSH);//Only want new data, so disregard anything already available
 	while( found != 1)
 	{
    		read(tty_gps, &buf[0], 1);
-		printf("%d",buf[0]);
+		//printf("%c",buf[0]);
 		if(buf[0] == '$')
 		{
-			read(tty_gps,buf,5);
+			for(count = 0;count < 5;count++)
+			{
+				read(tty_gps,&buf[count],1);
+			}
 			if(strncmp(buf, "GPRMC", 5) == 0)
 			{	
 				//Read in GPS data and get lat and long
 				found = 1;
-				read(tty_gps,buf, sizeof(buf));
+				for(count = 0;count < 37;count++)
+				{
+					read(tty_gps,&buf[count], 1);
+				}
 				memcpy(latitude, &buf[14],11);
 				memcpy(longitude,&buf[26],12);
 			}
@@ -105,14 +109,20 @@ void get_gps(int tty_gps, struct location* position)
 	convert_longitude(longitude,position);
 }
 
-
+/*
 int main()
 {
 	struct location c_position;
 	int tty_gps = initialize_gps();
-	get_gps(tty_gps,&c_position);
-	//printf("Latitude: %ld\n",c_position.int_lat);
-	//printf("Longitude: %ld\n",c_position.int_long);
+	int count = 0;
+	while(count < 6)
+	{
+		get_gps(tty_gps,&c_position);
+		printf("Latitude: %f\n",c_position.int_lat);
+		printf("Longitude: %f\n",c_position.int_long);
+		count++;
+	}
+	
 	close(tty_gps);
 	return 0;
-}
+}*/n
