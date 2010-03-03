@@ -5,18 +5,12 @@
 #include <fcntl.h>
 #include <string.h>
 
-struct location 
+struct Location 
 {
 	double int_lat;
 	double int_long;
 };
 
-//Temp for testing
-int initialize_dummy()
-{
-	return open("gps.dat",O_RDONLY);
-	
-}
 int initialize_gps()
 {
   int tty;
@@ -35,7 +29,7 @@ int initialize_gps()
   return tty;
 }
 
-void convert_latitude(char * lat, struct location* position)
+void convert_latitude(char * lat, struct Location* position)
 {
 	int count;
 	double mult = .0001;
@@ -52,7 +46,7 @@ void convert_latitude(char * lat, struct location* position)
 	}
 }
 
-void convert_longitude(char * lon, struct location* position)
+void convert_longitude(char * lon, struct Location* position)
 {
 	int count;
 	double mult = .0001;
@@ -71,7 +65,7 @@ void convert_longitude(char * lon, struct location* position)
 }
 
 //Read GPS coordinates and return lat and long - data is in NMEA 0183 format
-void get_gps(int tty_gps, struct location* position)
+void get_gps(int tty_gps, struct Location* position)
 {
    	unsigned char buf[38]; //Fill up with each line
 	unsigned char data = 0;
@@ -84,7 +78,6 @@ void get_gps(int tty_gps, struct location* position)
 	while( found != 1)
 	{
    		read(tty_gps, &buf[0], 1);
-		//printf("%c",buf[0]);
 		if(buf[0] == '$')
 		{
 			for(count = 0;count < 5;count++)
@@ -112,10 +105,10 @@ void get_gps(int tty_gps, struct location* position)
 /*
 int main()
 {
-	struct location c_position;
+	struct Location c_position;
 	int tty_gps = initialize_gps();
 	int count = 0;
-	while(count < 6)
+	while(count < 6)l
 	{
 		get_gps(tty_gps,&c_position);
 		printf("Latitude: %f\n",c_position.int_lat);

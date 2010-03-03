@@ -26,7 +26,7 @@ void timeout()
 	to = 1;
 }
 
-int initialize_sonar(int tty)
+void initialize_sonar(int tty)
 {
 	int address = SONAR_FIRST_ADDR; //Address of 1st sensor}
 	int output = 0;
@@ -63,10 +63,9 @@ int initialize_sonar(int tty)
 		read(tty,&output,1);
 		address = address + 2;
 	}
-	return 0;
 }
 
-int take_range( int tty )
+void take_range( int tty )
 {
 	int address = SONAR_FIRST_ADDR; //Address of 1st sensor
 	int output = 0;
@@ -78,8 +77,6 @@ int take_range( int tty )
 		address = address + 2;
 		usleep(100000); //Delay for sent pulses, can be removed if sonar facing in different directions
 	}
-
-	return 0;
 }
 
 int get_left_range(int tty)
