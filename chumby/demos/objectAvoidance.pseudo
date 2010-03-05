@@ -1,0 +1,26 @@
+init all sensors and controls
+drive forward
+loop()
+{
+	if sonar_front_detects() ? avoid();
+	recalc_bearing();
+	if gps detects offtrack ? turn to correct : go straight; 
+}
+
+
+avoid()
+{
+	while (sonar_front_detects() && sonar_left_detects())
+	{
+		speed(slow)
+		if(sonar_front_detects())
+			if (distance > 5m)
+				turn_right(20%)
+			else if (distance > 3m)
+				turn_right(60%)
+			else
+				turn_right(100%)
+		else
+			turn_straight()
+	}
+}
