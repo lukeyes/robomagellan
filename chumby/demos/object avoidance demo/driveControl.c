@@ -10,9 +10,6 @@
 #include "pwm_car.h"
 #include "driveControl.h"
 
-typedef unsigned char   u8;
-typedef unsigned short  u16;
-
 void driveForward(int percent) {
     pwm_drive((PWM_MAX_FORWARD_SPEED - PWM_IDLE) * percent / 100);
 }
