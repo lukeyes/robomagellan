@@ -12,9 +12,9 @@ loop()
 
 avoid()
 {
-	while (sonar_front_detects() && sonar_left_detects())
+	speed(slow)
+	while (sonar_front_detects() || sonar_left_detects())
 	{
-		speed(slow)
 		if(sonar_front_detects())
 			if (distance > 5m)
 				turn_right(20%)
