@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <fcntl.h>
-#include "driveControl.h"
+#include "drive_control.h"
 
 static int *mem = 0;
 static int fd = 0;
