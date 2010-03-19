@@ -25,7 +25,7 @@ void drive_reverse(int percent) {
     pwm_drive(PWM_IDLE_MAX+((PWM_IDLE_MAX - PWM_MAX_REVERSE_SPEED) * percent / 100));
 }
 
-void stop() {
+void stop_car() {
     pwm_drive(PWM_IDLE_MIN);
 }
 
