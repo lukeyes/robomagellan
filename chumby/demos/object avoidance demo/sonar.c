@@ -20,16 +20,15 @@
 #define RANGE 140
 #define GAIN 0
 
-
 void initialize_sonar(int tty)
 {
 	int address = SONAR_FIRST_ADDR; //Address of 1st sensor}
 	int output = 0;
 
+//Make sure everything works, in this case read the software version #
 	while ( address <= SONAR_LAST_ADDR )
 	{
 		write_i2c(tty, address + 1, 0, 1, 0);
-int get_right_range( int tty)
 		read(tty,&output,1);
 		address = address + 2;
 		if(output != 10)
