@@ -66,7 +66,7 @@ void avoid_object()
 				turn_left(20);
 			else if(front_sonar > 60) //do 60% turn
 				turn_left(60);
-			else if(fron_sonar > 15)
+			else if(front_sonar > 15)
 				turn_left(100); //do max turn
             else
                 stop_car();
