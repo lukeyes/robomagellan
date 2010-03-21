@@ -1,3 +1,7 @@
+/* Camera driver
+Written by Scott Hollwedel s.hollwedel@gmail.com
+*/
+
 #include <termios.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,7 +12,6 @@
 int initialize_camera()
 {
 	struct termios camera_term;
-	char buffer[5];
 
 	// Initialize serial to camera
 	int tty = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NONBLOCK);
@@ -19,12 +22,25 @@ int initialize_camera()
    	//camera_term.c_iflag = IGNPAR | IGNBRK;
 	tcsetattr(tty,TCSANOW,&camera_term);
 	usleep(50000);
+	return tty;
+}
 
+//Start tracking - turn on camera, pass correct parameters, and start spitting out tracking packets
+void start_tracking(int tty)
+{
+	char buffer[5];
+	
 	//Set tracking settings
+	char on[] = "cp 1\r"; //Turn camera on
 	char tc[] = "om 0 0\r"; //Suppress output from tracking
    	char servo[] = "sm 5\r";//Set to pan servo active and pan servo report
-	char color_track[] = "st 144 194 37 87 0 41\r"; //Set color tracking settings
+	char color_track[] = "tc 144 194 37 87 0 41\r"; //Start color tracking
 	
+	do {
+		write(tty,&on,sizeof(on));
+		usleep(50000);
+		read(tty, buffer, 5);
+	} while (buffer[0] != 'A');
 	do {
 		write(tty,&tc,sizeof(tc));
 		usleep(50000);
@@ -42,72 +58,81 @@ int initialize_camera()
 		usleep(50000);
 		read(tty, buffer, 5);
 	}while(buffer[0] != 'A');
-
-	return tty;
 }
 
-//Reads in the (ACK + /n + :) from each write command, returns 0 if ACK recieved, -1 if something else
-int rx_ack(int tty)
-{
-	char buffer[5];
-	int count;
-	for(count = 0; count < sizeof(buffer); count++)
-	{
-		read(tty,&buffer[count],1);
-	}
-
-	if( buffer[0] == 'A')
-		return 0;
-	else
-		return -1;
-}
-
-//Turn on servo
-void start_tracking(int tty)
-{
-	char servo[] = "so 0 1\r";//Turn on Servo
-	write(tty,&servo,sizeof(servo));
-}
-
-//Turn off servos
+//Reset to default values, turn off camera, and sleep processor
 void stop_tracking(int tty)
 {
-	char servo[] = "so 0 0\r";//Turn off Servo
-	write(tty,&servo,sizeof(servo));
+	char reset[] = "rs \r";
+	char off[] = "cp 0\r";
+	char sleep[] = "sl\r";
+	char buffer[5];
+	do {
+		write(tty,&off,sizeof(off));
+		usleep(50000);
+		read(tty, buffer, 5);
+	} while (buffer[0] != 'A');
+	
+	do {
+		write(tty,&reset,sizeof(reset));
+		usleep(50000);
+		read(tty, buffer, 4);
+	} while (buffer[0] != 'A');
+	
+	write(tty,&sleep, sizeof(sleep));
+	tcflush(tty,TCIFLUSH);
+	usleep(50000);	
 }
 
 
 //Value between 46 and 210, 128 is the center
 int servo_position(int tty)
 {
-   	char buffer[9];//(ACK XXX :) NOTE: Not sure if XX is also possible
-	int count;
-	int position = 0; 
-   	char get_servo_pos[] = "gs 0\r"; //Get position of servo 0
-	write(tty,&get_servo_pos,sizeof(get_servo_pos));
-	usleep(50000);
-	read(tty,buffer,9);
-	if(buffer[6] == 13)
+	//Clear input buffer to ensure we are getting the latest info
+	tcflush(tty,TCIFLUSH);
+	usleep(150000);//Time delay to allow buffer to fill back up with latest tracking info
+	
+	int position;
+   	char buffer[6];//(T XXX )
+	read(tty,buffer,6);
+	position = buffer[3];
+	
+	if(buffer[4] == 13)
 	{
-		position = (buffer[4] - 48)*10 + buffer[5] - 48;
+		position = (buffer[2] - 48)*10 + buffer[3] - 48;
 	}
 	else
 	{
-		position = (buffer[4] - 48)*100 + (buffer[5] - 48)*10 + (buffer[6] - 48);
+		position = (buffer[2] - 48)*100 + (buffer[3] - 48)*10 + (buffer[4] - 48);
 	}
-	
+		
 	return position;
 }
 
 int main()
 {
+	//Initialize
 	int tty = initialize_camera();
-	printf("%d\n",servo_position(tty));
-	//char buffer[] = "sv 0 90\r";
-	//char input[5];
-	//write(tty, buffer, sizeof(buffer));
-	//usleep(50000);
-	//read(tty,input,5);
+	
+	//Start Tracking
+	start_tracking(tty);
+	
+	//Get position
+	int count;
+	for(count = 0; count < 10; count++)
+	{
+		printf("Position: %d\n",servo_position(tty));
+	}
+	stop_tracking(tty);
+	
+	start_tracking(tty);
+	
+	//Get position
+	for(count = 0; count < 10; count++)
+	{
+		printf("Position: %d\n",servo_position(tty));
+	}
+	
 	close(tty);
 	return 0;
 }
