@@ -7,8 +7,8 @@
 
 struct Location 
 {
-	double int_lat;
-	double int_long;
+	double latitude;
+	double longitude;
 };
 
 int initialize_gps()
@@ -29,19 +29,46 @@ int initialize_gps()
   return tty;
 }
 
+double convert_nmea_ll(char * lat)
+{
+	int degrees = 0;
+	double minutes;
+
+	int count;
+	int dot = 0;
+	int i, x;
+
+	while (lat[dot] != '.')
+	{
+		dot++;
+	}
+
+	for ( count = 0; count < dot - 2; count++ )
+	{
+		degrees *= 10;
+		degrees += lat[count] - '0';
+	}
+
+	minutes = (10 * lat[dot - 2]) + lat[dot - 1];
+	minutes += (.1 * lat[dot + 1]) + (.01 * lat[dot+2]);
+
+	return degrees + (minutes / 60);
+}
+
 void convert_latitude(char * lat, struct Location* position)
 {
+
 	int count;
 	double mult = .0001;
-	position->int_lat = 0;
+	position->latitude = 0;
 	for(count = 8;count > 4;count--)
 	{ 
-		position->int_lat = position->int_lat + ((lat[count]-48)*mult); 
+		position->latitude += ((lat[count]-48)*mult); 
 		mult = mult*10;
 	}
 	for(count = 3;count >= 0;count--)
 	{
-		position->int_lat = position->int_lat + ((lat[count]-48)*mult); 
+		position->latitude += ((lat[count]-48)*mult); 
 		mult = mult*10;
 	}
 }
@@ -50,16 +77,16 @@ void convert_longitude(char * lon, struct Location* position)
 {
 	int count;
 	double mult = .0001;
-	position->int_long = 0;
+	position->longitude = 0;
 	for(count = 9;count > 5;count--)
 	{ 
-		position->int_long = position->int_long + ((lon[count]-48)*mult); 
+		position->longitude += ((lon[count]-48)*mult); 
 		mult = mult*10;
 	}
 
 	for(count = 4;count >= 0;count--)
 	{
-		position->int_long = position->int_long + ((lon[count]-48)*mult); 
+		position->longitude += ((lon[count]-48)*mult); 
 		mult = mult*10;
 	}
 }
@@ -98,8 +125,25 @@ void get_gps(int tty_gps, struct Location* position)
 		}
 	
 	}
-	convert_latitude(latitude,position);
-	convert_longitude(longitude,position);
+	position->latitude = convert_nmea_ll(latitude);
+	position->longitude = convert_nmea_ll(longitude);
+	//convert_latitude(latitude,position);
+	//convert_longitude(longitude,position);
+}
+
+double get_heading(struct Location* pos, struct Location* dest)
+{
+	double dlat, dlong, rise, polangle;
+	dlat = dest->latitude - pos->latitude;
+	dlong = dest->longitude - pos->longitude;
+	rise = dlong/dlat;
+
+	if (dlong < 0)
+	{
+		polangle += 180;
+	}
+
+	return 90 - polangle;
 }
 
 /*
@@ -111,11 +155,11 @@ int main()
 	while(count < 6)l
 	{
 		get_gps(tty_gps,&c_position);
-		printf("Latitude: %f\n",c_position.int_lat);
-		printf("Longitude: %f\n",c_position.int_long);
+		printf("Latitude: %f\n",c_position.latitude);
+		printf("Longitude: %f\n",c_position.longitude);
 		count++;
 	}
 	
 	close(tty_gps);
 	return 0;
-}*/n
+}*/
