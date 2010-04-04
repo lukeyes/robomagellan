@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <math.h>
 
 struct Location 
 {
@@ -138,12 +139,25 @@ double get_heading(struct Location* pos, struct Location* dest)
 	dlong = dest->longitude - pos->longitude;
 	rise = dlong/dlat;
 
+	polangle = atan(rise);
+	printf("dlat = %f\ndlong = %f\nrise = %f\npolangle = %f\n",dlat,dlong,rise,polangle);
+
 	if (dlong < 0)
 	{
 		polangle += 180;
 	}
 
 	return 90 - polangle;
+}
+
+int main()
+{
+	struct Location pos1, pos2;
+	pos1.latitude = 32.925100814243805;
+	pos1.longitude = -117.06606924533844;
+	pos2.latitude = 32.92550606486474;
+	pos2.longitude = -117.06569373607635;
+	printf("Angle: %f\n",get_heading(&pos1,&pos2));
 }
 
 /*
