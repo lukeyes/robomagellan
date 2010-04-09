@@ -56,10 +56,10 @@ void ReadData(double data[], int TTY) {
 
       data[0] = latitude;
       data[1] = longitude;
-//      printf("%s --- %f --- %f --- %f --- %f\n",status,latitude,longitude,bearing,current_direction);
+      fprintf(stderr,"%s --- %f --- %f --- %f --- %f\n",status,latitude,longitude,bearing,current_direction);
 
 //      printf("%s", buf);
-//     sleep(1);
+     sleep(1);
    }
 }
 
