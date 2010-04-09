@@ -16,10 +16,10 @@ int initialize_camera()
 	// Initialize serial to camera
 	int tty = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NONBLOCK);
    	tcgetattr(tty, &camera_term);
-	//cfmakeraw(&camera_term);
+	cfmakeraw(&camera_term);
   	camera_term.c_cflag = B115200;
-   	//camera_term.c_cflag = CS8 | CREAD | CLOCAL;
-   	//camera_term.c_iflag = IGNPAR | IGNBRK;
+   	camera_term.c_cflag = CS8 | CREAD | CLOCAL;
+   	camera_term.c_iflag = IGNPAR | IGNBRK;
 	tcsetattr(tty,TCSANOW,&camera_term);
 	usleep(50000);
 	return tty;
@@ -32,7 +32,7 @@ void start_tracking(int tty)
 	
 	//Set tracking settings
 	char on[] = "cp 1\r"; //Turn camera on
-	char tc[] = "om 0 0\r"; //Suppress output from tracking
+	char tc[] = "om 0 64\r"; //Suppress output from tracking except pixels out
    	char servo[] = "sm 5\r";//Set to pan servo active and pan servo report
 	char color_track[] = "tc 144 194 37 87 0 41\r"; //Start color tracking
 	
@@ -86,53 +86,77 @@ void stop_tracking(int tty)
 
 
 //Value between 46 and 210, 128 is the center
+//13 is ASCII return, 32 is spaces
+//0 indicates nothing found
 int servo_position(int tty)
 {
 	//Clear input buffer to ensure we are getting the latest info
 	tcflush(tty,TCIFLUSH);
 	usleep(150000);//Time delay to allow buffer to fill back up with latest tracking info
 	
+	int pixels;
 	int position;
-   	char buffer[6];//(T XXX )
-	read(tty,buffer,6);
-	position = buffer[3];
+	int pixelplaces = 0; 
+   	char buffer[10];//(T XXX )
+	read(tty,buffer,10);
 	
-	if(buffer[4] == 13)
+	//Convert pixel count to int 
+	if(buffer[5] == 32)
 	{
-		position = (buffer[2] - 48)*10 + buffer[3] - 48;
+		pixels = (buffer[2] - 48)*100 + (buffer[3] - 48)*10 + buffer[4] - 48;
+		pixelplaces = 3;
 	}
-	else
+	else if(buffer[4] == 32)
 	{
-		position = (buffer[2] - 48)*100 + (buffer[3] - 48)*10 + (buffer[4] - 48);
+		pixels = (buffer[2] - 48)*10 + buffer[3] - 48;
+		pixelplaces= 2;
 	}
+	else if(buffer[3] == 32)
+	{
+		pixels = buffer[2] - 48;
+		pixelplaces = 1;
+	}
+	
+	//Convert servo direction to int
+	if(buffer[5 + pixelplaces] == 13)
+	{
+		position = (buffer[3 + pixelplaces] - 48) * 10 + buffer[4 + pixelplaces] - 48;
+	}
+	else if(buffer[6+pixelplaces] == 13)
+	{
+		position = (buffer[3 + pixelplaces] - 48)*100 + (buffer[4 + pixelplaces] - 48)*10 + buffer[5 + pixelplaces] - 48;
+	}
+	
+	if(pixels > 0);
+		return position;
 		
-	return position;
+	return 0;
 }
 
 int main()
 {
 	//Initialize
 	int tty = initialize_camera();
+	start_tracking(tty);
+	char buffer[] = "sv 0 80\r";
+	write(tty, buffer, sizeof(buffer));
+	sleep(2);
+	printf("%d\n", servo_position(tty));
 	
-	//Start Tracking
+	//camera_scan(tty);
+	/*//Start Tracking
 	start_tracking(tty);
 	
 	//Get position
 	int count;
-	for(count = 0; count < 10; count++)
+	while(1)
 	{
-		printf("Position: %d\n",servo_position(tty));
+		servo_position(tty, &ct);
+		printf("Direction: %d\n",ct.location);
+		printf("Size: %d\n",ct.size);
 	}
+	*/
 	stop_tracking(tty);
-	
-	start_tracking(tty);
-	
-	//Get position
-	for(count = 0; count < 10; count++)
-	{
-		printf("Position: %d\n",servo_position(tty));
-	}
-	
 	close(tty);
 	return 0;
 }

@@ -26,8 +26,9 @@ void timeout()
 	to = 1;
 }
 
-void initialize_sonar(int tty)
+int initialize_sonar()
 {
+	tty = initialize_i2c();
 	int address = SONAR_FIRST_ADDR; //Address of 1st sensor}
 	int output = 0;
 
@@ -63,6 +64,8 @@ void initialize_sonar(int tty)
 		read(tty,&output,1);
 		address = address + 2;
 	}
+	
+	return tty;
 }
 
 void take_range( int tty )

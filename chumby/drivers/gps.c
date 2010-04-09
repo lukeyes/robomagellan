@@ -102,7 +102,7 @@ void get_gps(int tty_gps, struct Location* position)
 	int count = 0;
 	int found = 0;
 	
-	//Disregard data until $GPRMC is found
+	//Disregard data until $GPRMC is found and is valid
 	while( found != 1)
 	{
    		read(tty_gps, &buf[0], 1);
@@ -120,6 +120,8 @@ void get_gps(int tty_gps, struct Location* position)
 				{
 					read(tty_gps,&buf[count], 1);
 				}
+				if(buf[12] == 'V');
+					found = 0;
 				memcpy(latitude, &buf[14],11);
 				memcpy(longitude,&buf[26],12);
 			}
@@ -139,7 +141,7 @@ double get_heading(struct Location* pos, struct Location* dest)
 	dlong = dest->longitude - pos->longitude;
 	rise = dlong/dlat;
 
-	polangle = atan(rise);
+	//polangle = atan(rise);
 	printf("dlat = %f\ndlong = %f\nrise = %f\npolangle = %f\n",dlat,dlong,rise,polangle);
 
 	if (dlong < 0)
