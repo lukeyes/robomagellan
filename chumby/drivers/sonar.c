@@ -28,7 +28,7 @@ void timeout()
 
 int initialize_sonar()
 {
-	tty = initialize_i2c();
+	int tty = initialize_i2c();
 	int address = SONAR_FIRST_ADDR; //Address of 1st sensor}
 	int output = 0;
 
@@ -90,12 +90,11 @@ int get_left_range(int tty)
 	return output;
 } 
 
-int get_right_range( int tty)
+int get_center_range( int tty)
 {
 	int output = 0;
 	write_i2c(tty, 0xE3, 3, 1, 0);
 	read(tty, &output,1);
 	return output;
 }
-
 
