@@ -12,6 +12,10 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
+#include "sonar.h"
+#include "compass.h"
+#include "camera.h"
+#include "gps.h"
 #include "done_state.h"
 #include "track_state.h"
 #include "object_avoidance_state.h"
