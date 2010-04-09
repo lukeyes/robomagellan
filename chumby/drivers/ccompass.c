@@ -9,16 +9,28 @@ int initialize_ccompass()
 {
   int tty;
   struct termios ccompass_term;
+  fprintf(stderr,"init:1.\n");
 
-  tty = open("/dev/ttyUSB0", O_RDONLY | O_NOCTTY | O_NONBLOCK);
+  tty = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NONBLOCK);
+  fprintf(stderr,"init:1.\n");
   tcgetattr(tty, &ccompass_term);
+  fprintf(stderr,"init:2.\n");
   cfmakeraw(&ccompass_term);
+  fprintf(stderr,"init:3.\n");
   cfsetspeed(&ccompass_term, B19200);
+  fprintf(stderr,"init:4.\n");
   ccompass_term.c_cflag = CS8 | CLOCAL | CREAD;
+  fprintf(stderr,"init:5.\n");
   ccompass_term.c_iflag = IGNPAR | IGNBRK;
+  fprintf(stderr,"init:6.\n");
   ccompass_term.c_cc[VTIME] = 10;
+  fprintf(stderr,"init:7.\n");
   ccompass_term.c_cc[VMIN] = 0;
-  tcsetattr(tty,TCSAFLUSH,&ccompass_term);
+  fprintf(stderr,"init:8.\n");
+  tcsetattr(tty,TCSANOW,&ccompass_term);
+  fprintf(stderr,"init:9.\n");
+  usleep(50000);
+  fprintf(stderr,"init:10.\n");
 
   return tty;
 }
@@ -56,8 +68,13 @@ double get_ccompass(int tty_ccompass)
 
 int main()
 {
+	fprintf(stderr,"Start of main.\n");
 	int tty = initialize_ccompass();
+	fprintf(stderr,"After init.\n");
 
 	while (1)
+	{
+		fprintf(stderr,"Before compass getting.\n");
 		printf("%f\n",get_ccompass(tty));
+	}
 }
