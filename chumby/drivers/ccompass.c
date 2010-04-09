@@ -12,7 +12,7 @@ int initialize_ccompass()
   fprintf(stderr,"init:1.\n");
 
   tty = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NONBLOCK);
-  fprintf(stderr,"init:1.\n");
+  fprintf(stderr,"init:1. tty: %d\n",tty);
   tcgetattr(tty, &ccompass_term);
   fprintf(stderr,"init:2.\n");
   cfmakeraw(&ccompass_term);
@@ -46,13 +46,17 @@ double get_ccompass(int tty_ccompass)
 	//Disregard data until $C is found
 	while( found != 1)
 	{
+  		fprintf(stderr,"init:Getting: notfound.\n");
    		read(tty_ccompass, &buf[0], 1);
+  		fprintf(stderr,"init:Getting: character0: %c.\n", buf[0]);
 		if(buf[0] == '$')
 		{
    			read(tty_ccompass, &buf[0], 1);
+  			fprintf(stderr,"init:Getting: character1: %c.\n", buf[0]);
 			if(buf[0] == 'C')
 			{
 				read(tty_ccompass,&buf[0],5);
+  				fprintf(stderr,"init:Getting: character2: %c.\n", buf[0]);
 				for (count = 0; count < 5 && buf[count] != '.'; count++)
 				{
 					value *= 10;
@@ -63,6 +67,7 @@ double get_ccompass(int tty_ccompass)
 			}
 		}
 	}
+  	fprintf(stderr,"init:Getting: Done, return: %f.\n", value);
 	return (value < 360.0 && value >= 0) ? value : -1;
 }
 
