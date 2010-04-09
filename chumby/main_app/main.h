@@ -25,8 +25,9 @@ enum {
     DONE_STATE
 } STATES;
 
-int current_state;
 int next_state;
 
 int gps_tty;
 int compass_tty;
+int sonar_tty;
+int camera_tty;

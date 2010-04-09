@@ -12,6 +12,11 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
+#include "done_state.h"
+#include "track_state.h"
+#include "object_avoidance_state.h"
+#include "navigation_state.h"
+#include "init_state.h"
 #include "main.h"
 
 void * gps_task(void * ptr);
@@ -23,6 +28,7 @@ void * camera_task(void * ptr);
 void exit_routine (int sig);
 
 int main () {
+    int current_state;
     pthread_t gps_t, compass_t, front_sonar_t, right_sonar_t, camera_t;
 
     // Control-C detection
@@ -37,7 +43,6 @@ int main () {
 
     current_state = next_state = INIT_STATE;
     while (1) {
-#if 0
         current_state = next_state;
         switch (current_state) {
             case INIT_STATE:
@@ -56,7 +61,6 @@ int main () {
                 done_state();
                 break;
         }
-#endif
         fprintf(stderr, "main\n\n");
         sleep(1);
     }
