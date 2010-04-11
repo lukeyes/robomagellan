@@ -29,7 +29,7 @@ int main (int argc, char **argv) {
     signal(SIGINT, exit_routine);
 
     // Check for debug option
-    if(getopt(argc, argv, "d:") != -1)
+    if(getopt(argc, argv, "d") != -1)
         debug = 1;
 
     // Begin with init state
