@@ -94,7 +94,7 @@ CXXFLAGS= -g -O2
 
 # The C program compiler.
 #CC     = gcc
-CC     = arm-linux-gcc
+CC     = arm-linux-gcc -lpthread
 
 # The C++ program compiler.
 #CXX    = g++

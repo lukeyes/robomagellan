@@ -59,9 +59,9 @@ int main () {
                 object_avoidance_state();
                 break;
             case TRACK_CONE_STATE:
-                track_cone_state();
+                track_state();
                 break;
-            case DONE_STATE
+            case DONE_STATE:
                 done_state();
                 break;
         }

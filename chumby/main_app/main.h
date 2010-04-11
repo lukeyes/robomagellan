@@ -26,7 +26,7 @@ enum {
 } STATES;
 
 int next_state;
-
+int debug;
 int gps_tty;
 int compass_tty;
 int sonar_tty;

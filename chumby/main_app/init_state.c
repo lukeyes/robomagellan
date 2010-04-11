@@ -4,7 +4,11 @@
 //receive gps coordinates
 #include <stdio.h>
 #include "main.h"
-
+#include "init_state.h"
+#include "sonar.h"
+#include "camera.h"
+#include "usb_i2c.h"
+#include "gps.h"
 void init_state() {
 }
 
@@ -65,4 +69,5 @@ int init_sonar(int tty)
 
 int init_compass(int tty)
 {
+	return 0;
 }
