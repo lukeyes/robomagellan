@@ -1,5 +1,4 @@
-void timeout();
-int initialize_sonar(int tty);
-int take_range( int tty );
-int get_front_range(int tty);
-int get_right_range( int tty);
+int sonar_init();
+int sonar_take_range();
+int sonar_get_left();
+int sonar_get_front();

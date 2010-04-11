@@ -1,4 +1,4 @@
-int initialize_camera();
-void start_tracking(int tty);
-void stop_tracking(int tty);
-int servo_position(int tty);
+int camera_init();
+void camera_start_tracking();
+void camera_stop_tracking();
+int camera_servo_position();

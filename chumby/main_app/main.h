@@ -21,13 +21,9 @@ enum {
     INIT_STATE = 0,
     NAVIGATION_STATE,
     OBJECT_AVOIDANCE_STATE,
-    TRACK_CONE_STATE,
+    TRACK_STATE,
     DONE_STATE
 } STATES;
 
 int next_state;
 int debug;
-int gps_tty;
-int compass_tty;
-int sonar_tty;
-int camera_tty;

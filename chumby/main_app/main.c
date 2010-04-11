@@ -12,40 +12,30 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
-#include "sonar.h"
-#include "compass.h"
-#include "camera.h"
-#include "gps.h"
+#include "main.h"
 #include "done_state.h"
 #include "track_state.h"
 #include "object_avoidance_state.h"
 #include "navigation_state.h"
 #include "init_state.h"
-#include "main.h"
-
-void * gps_task(void * ptr);
-void * compass_task(void * ptr);
-void * front_sonar_task(void * ptr);
-void * right_sonar_task(void * ptr);
-void * camera_task(void * ptr);
 
 void exit_routine (int sig);
 
-int main () {
+int main (int argc, char **argv) {
     int current_state;
-    pthread_t gps_t, compass_t, front_sonar_t, right_sonar_t, camera_t;
+    char c;
+    debug = 0;
 
-    // Control-C detection
+    // Enable Control-C detection
     signal(SIGINT, exit_routine);
 
-    // Launch all threads
-    pthread_create(&gps_t, NULL, gps_task, NULL);
-    pthread_create(&compass_t, NULL, compass_task, NULL);
-    pthread_create(&front_sonar_t, NULL, front_sonar_task, NULL);
-    pthread_create(&right_sonar_t, NULL, right_sonar_task, NULL);
-    pthread_create(&camera_t, NULL, camera_task, NULL);
+    // Check for debug option
+    if(getopt(argc, argv, "d:") != -1)
+        debug = 1;
 
-    current_state = next_state = INIT_STATE;
+    // Begin with init state
+    next_state = INIT_STATE;
+
     while (1) {
         current_state = next_state;
         switch (current_state) {
@@ -58,7 +48,7 @@ int main () {
             case OBJECT_AVOIDANCE_STATE:
                 object_avoidance_state();
                 break;
-            case TRACK_CONE_STATE:
+            case TRACK_STATE:
                 track_state();
                 break;
             case DONE_STATE:
@@ -70,52 +60,9 @@ int main () {
     }
 }
 
-void * gps_task(void * ptr) {
-    void * ret_ptr = NULL;
-    while (1) {
-        fprintf(stderr, "gps_task\n");
-        sleep(1);
-    }
-    return ret_ptr;
-}
-
-void * compass_task(void * ptr) {
-    void * ret_ptr = NULL;
-    while (1) {
-        fprintf(stderr, "compass_task\n");
-        sleep(1);
-    }
-    return ret_ptr;
-}
-
-void * front_sonar_task(void * ptr) {
-    void * ret_ptr = NULL;
-    while (1) {
-        fprintf(stderr, "front_sonar_task\n");
-        sleep(1);
-    }
-    return ret_ptr;
-}
-
-void * right_sonar_task(void * ptr) {
-    void * ret_ptr = NULL;
-    while (1) {
-        fprintf(stderr, "right_sonar_task\n");
-        sleep(1);
-    }
-    return ret_ptr;
-}
-
-void * camera_task(void * ptr) {
-    void * ret_ptr = NULL;
-    while (1) {
-        fprintf(stderr, "camera_task\n");
-        sleep(1);
-    }
-    return ret_ptr;
-}
-
 void exit_routine (int sig) {
+    // To stop car
+    done_state();
     fprintf(stderr, "exiting program\n");
     exit(0);
 }
