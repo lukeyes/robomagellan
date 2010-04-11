@@ -23,7 +23,6 @@ void exit_routine (int sig);
 
 int main (int argc, char **argv) {
     int current_state;
-    char c;
     debug = 0;
 
     // Enable Control-C detection
