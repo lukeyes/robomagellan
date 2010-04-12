@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include <math.h>
 #include "gps.h"
+#include "atan.c"
 
 static int tty;
 
@@ -55,42 +55,6 @@ double convert_nmea_ll(char * lat)
     return degrees + (minutes / 60);
 }
 
-void convert_latitude(char * lat, struct Location* position)
-{
-
-    int count;
-    double mult = .0001;
-    position->latitude = 0;
-    for(count = 8;count > 4;count--)
-    { 
-        position->latitude += ((lat[count]-48)*mult); 
-        mult = mult*10;
-    }
-    for(count = 3;count >= 0;count--)
-    {
-        position->latitude += ((lat[count]-48)*mult); 
-        mult = mult*10;
-    }
-}
-
-void convert_longitude(char * lon, struct Location* position)
-{
-    int count;
-    double mult = .0001;
-    position->longitude = 0;
-    for(count = 9;count > 5;count--)
-    { 
-        position->longitude += ((lon[count]-48)*mult); 
-        mult = mult*10;
-    }
-
-    for(count = 4;count >= 0;count--)
-    {
-        position->longitude += ((lon[count]-48)*mult); 
-        mult = mult*10;
-    }
-}
-
 //Read GPS coordinates and return lat and long - data is in NMEA 0183 format
 void gps_get_position(struct Location* position)
 {
@@ -128,8 +92,19 @@ void gps_get_position(struct Location* position)
     }
     position->latitude = convert_nmea_ll((char *)latitude);
     position->longitude = convert_nmea_ll((char *)longitude);
-    //convert_latitude(latitude,position);
-    //convert_longitude(longitude,position);
+}
+
+double calc_target_distance(struct Location* pos, struct Location* dest)
+{
+    double dlat, dlong, dist;
+    dlat = dest->latitude - pos->latitude;
+    dlong = dest->longitude - pos->longitude;
+
+	dist = (dlat * dlat) + (dlong * dlong);
+
+    printf("dlat = %f\ndlong = %f\nrise = %f\npolangle = %f\n",dlat,dlong,rise,polangle);
+
+    return dist;
 }
 
 double calc_target_heading(struct Location* pos, struct Location* dest)
@@ -139,13 +114,20 @@ double calc_target_heading(struct Location* pos, struct Location* dest)
     dlong = dest->longitude - pos->longitude;
     rise = dlong/dlat;
 
-    //polangle = atan(rise);
+    polangle = atan(rise) + ((dlong < 0) ? 180 : 0);
+
     printf("dlat = %f\ndlong = %f\nrise = %f\npolangle = %f\n",dlat,dlong,rise,polangle);
 
-    if (dlong < 0)
-    {
-        polangle += 180;
-    }
+    return polangle;
+}
 
-    return 90 - polangle;
+main()
+{
+	struct Location pos, dest;
+	pos.latitude = 32.93154766247661;
+	pos.longitude = -110.9234619140625;
+	dest.latitude = 32.41366566526167;
+	dest.longitude = -110.2862548828125;
+
+	printf("From %f,%f to %f,%f:  at heading %f\n",pos.latitude,pos.longitude,dest.latitude,dest.longitude,calc_target_heading(&pos,&dest));
 }
