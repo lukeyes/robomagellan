@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include "gps.h"
-#include "atan.c"
+#include "atan.h"
 
 static int tty;
 
@@ -96,11 +96,11 @@ void gps_get_position(struct Location* position)
 
 double calc_target_distance(struct Location* pos, struct Location* dest)
 {
-    double dlat, dlong, dist;
+    double dlat, dlong, dist, rise=0, polangle=0;
     dlat = dest->latitude - pos->latitude;
     dlong = dest->longitude - pos->longitude;
 
-	dist = (dlat * dlat) + (dlong * dlong);
+    dist = (dlat * dlat) + (dlong * dlong);
 
     printf("dlat = %f\ndlong = %f\nrise = %f\npolangle = %f\n",dlat,dlong,rise,polangle);
 
@@ -121,13 +121,15 @@ double calc_target_heading(struct Location* pos, struct Location* dest)
     return polangle;
 }
 
+#if 0
 main()
 {
-	struct Location pos, dest;
-	pos.latitude = 32.93154766247661;
-	pos.longitude = -110.9234619140625;
-	dest.latitude = 32.41366566526167;
-	dest.longitude = -110.2862548828125;
+    struct Location pos, dest;
+    pos.latitude = 32.93154766247661;
+    pos.longitude = -110.9234619140625;
+    dest.latitude = 32.41366566526167;
+    dest.longitude = -110.2862548828125;
 
-	printf("From %f,%f to %f,%f:  at heading %f\n",pos.latitude,pos.longitude,dest.latitude,dest.longitude,calc_target_heading(&pos,&dest));
+    printf("From %f,%f to %f,%f:  at heading %f\n",pos.latitude,pos.longitude,dest.latitude,dest.longitude,calc_target_heading(&pos,&dest));
 }
+#endif

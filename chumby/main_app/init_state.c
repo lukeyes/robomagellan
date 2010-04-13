@@ -2,11 +2,20 @@
 //verify all peripherals
 //output status to screen
 //receive gps coordinates
+#include <stdlib.h>
 #include <stdio.h>
 #include "main.h"
 #include "device_threads.h"
 
 void init_state() {
+    static int first = 1;
+    next_state = NAVIGATION_STATE;
+    // Spawn threads only once
+    if (first) {
+        spawn_device_threads();
+        first = 0;
+    }
+
 }
 #if 0
 int init_gps() {
