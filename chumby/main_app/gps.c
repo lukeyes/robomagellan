@@ -8,6 +8,11 @@
 #include "gps.h"
 
 #define PI 3.14159265358979
+//Radius in meters:
+
+#define R 		6378000
+#define DtoR 	(PI / 180)
+#define RtoD 	(180 / PI)
 
 static int tty;
 
@@ -95,40 +100,41 @@ void gps_get_position(struct Location* position)
     position->latitude = convert_nmea_ll((char *)latitude);
     position->longitude = convert_nmea_ll((char *)longitude);
 }
-/*
 
 double calc_target_distance(struct Location* pos, struct Location* dest)
 {
-    double dlat, dlong, dist, rise=0, polangle=0;
-    dlat = dest->latitude - pos->latitude;
-    dlong = dest->longitude - pos->longitude;
+    double a1,b1,a2,b2,dist;
 
-    dist = (dlat * dlat) + (dlong * dlong);
+	a1 = pos->latitude * DtoR;
+	b1 = pos->longitude * DtoR;
+	a2 = dest->latitude * DtoR;
+	b2 = dest->longitude * DtoR;
 
-    printf("dlat = %f\ndlong = %f\nrise = %f\npolangle = %f\n",dlat,dlong,rise,polangle);
+	dist = acos((cos(a1) * cos(b1) * cos(a2) * cos(b2)) + (cos(a1) * sin(b1) * cos(a2) * sin(b2)) + (sin(a1) * sin(a2))) * R;
+
+	printf("a1: %f\nb1: %f\na2: %f\nb2: %f\n",a1,b1,a2,b2);
+    printf("distance: %f meters.\n",dist);
 
     return dist;
 }
-*/
+
 double calc_target_heading(struct Location* pos, struct Location* dest)
 {
-    double dlat, dlong, rise, polangle=0;
-    dlat = dest->latitude - pos->latitude;
-    dlong = dest->longitude - pos->longitude;
-    rise = dlong/dlat;
+    double dlong, lat1, lat2, y, x, bearing;
 
-    polangle = (atan(rise) * 180 / PI);
-	polangle = (polangle < 0) ? (180 + polangle) : polangle;
-	polangle += ((dlong < 0) ? 180 : 0);
+	lat1 = pos->latitude * DtoR;
+	lat2 = dest->latitude * DtoR;
+	dlong = (dest->longitude - pos->longitude) * DtoR;
+	
+	y = sin(dlong) * cos(lat2);
+	x = (cos(lat1) * sin(lat2)) - (sin(lat1) * cos(lat2) * cos(dlong));
+	bearing = atan2(y,x) * RtoD;
+	bearing = (bearing < 0) ? bearing + 360 : bearing;
 
-	printf("atan(%f) / PI * 180: %f\n", rise, (atan(rise) / PI * 180));
-
-    printf("dlat = %f\ndlong = %f\nrise = %f\npolangle = %f\n",dlat,dlong,rise,polangle);
-
-    return polangle;
+    return bearing;
 }
 
-#if 0
+#if 1 
 main()
 {
 	struct Location pos, dest;
@@ -137,6 +143,6 @@ main()
 	dest.latitude = 37.14017840899607;
 	dest.longitude = -121.93609714508057;
 
-    printf("From %f,%f to %f,%f:  at heading %f\n",pos.latitude,pos.longitude,dest.latitude,dest.longitude,calc_target_heading(&pos,&dest));
+    printf("From %f,%f to %f,%f: %f  at heading %f\n",pos.latitude,pos.longitude,dest.latitude,dest.longitude,calc_target_distance(&pos,&dest),calc_target_heading(&pos,&dest));
 }
 #endif
