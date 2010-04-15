@@ -4,8 +4,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <math.h>
 #include "gps.h"
-#include "atan.h"
+
+#define PI 3.14159265358979
 
 static int tty;
 
@@ -93,6 +95,7 @@ void gps_get_position(struct Location* position)
     position->latitude = convert_nmea_ll((char *)latitude);
     position->longitude = convert_nmea_ll((char *)longitude);
 }
+/*
 
 double calc_target_distance(struct Location* pos, struct Location* dest)
 {
@@ -106,7 +109,7 @@ double calc_target_distance(struct Location* pos, struct Location* dest)
 
     return dist;
 }
-
+*/
 double calc_target_heading(struct Location* pos, struct Location* dest)
 {
     double dlat, dlong, rise, polangle=0;
@@ -114,7 +117,11 @@ double calc_target_heading(struct Location* pos, struct Location* dest)
     dlong = dest->longitude - pos->longitude;
     rise = dlong/dlat;
 
-    polangle = atan(rise) + ((dlong < 0) ? 180 : 0);
+    polangle = (atan(rise) * 180 / PI);
+	polangle = (polangle < 0) ? (180 + polangle) : polangle;
+	polangle += ((dlong < 0) ? 180 : 0);
+
+	printf("atan(%f) / PI * 180: %f\n", rise, (atan(rise) / PI * 180));
 
     printf("dlat = %f\ndlong = %f\nrise = %f\npolangle = %f\n",dlat,dlong,rise,polangle);
 
@@ -124,11 +131,11 @@ double calc_target_heading(struct Location* pos, struct Location* dest)
 #if 0
 main()
 {
-    struct Location pos, dest;
-    pos.latitude = 32.93154766247661;
-    pos.longitude = -110.9234619140625;
-    dest.latitude = 32.41366566526167;
-    dest.longitude = -110.2862548828125;
+	struct Location pos, dest;
+	pos.latitude = 37.1457202952197;
+	pos.longitude = -121.92811489105225;
+	dest.latitude = 37.14017840899607;
+	dest.longitude = -121.93609714508057;
 
     printf("From %f,%f to %f,%f:  at heading %f\n",pos.latitude,pos.longitude,dest.latitude,dest.longitude,calc_target_heading(&pos,&dest));
 }
