@@ -47,8 +47,8 @@ double compass_get_heading()
     double value = 0;
     int retries = 0;
     
-	tcflush(tty_ccompass,TCIFLUSH);
-	usleep(100000);
+        tcflush(tty,TCIFLUSH);
+        usleep(100000);
     
     //Disregard data until $C is found
     while( found != 1)
@@ -57,14 +57,11 @@ double compass_get_heading()
           return COMPASS_DATA_TIMEOUT;
 
         if(read(tty, &buf[0], 1) < 0)
-          return COMPASS_TTY_READ_FAIL;
-
-		if (!buf[0])
-			usleep(500000);
+            usleep(500000);
 
         if(buf[0] == '$')
         {
-			usleep(10000);
+            usleep(10000);
             read(tty, &buf[0], 1);
             if(buf[0] == 'C')
             {
