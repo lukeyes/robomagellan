@@ -8,7 +8,8 @@
  */
 
 struct {
-    char current_state_str [16]; // Current state string
+    char current_state_str [32]; // Current state string
+    char error_str [32]; // Error message
     double front_sonar; // distance from front sonar to object in meters
     double left_sonar; // distance from left sonar to object in meters
     double current_lat; // Current latitude in degrees
@@ -28,8 +29,14 @@ enum {
     NAVIGATION_STATE,
     OBJECT_AVOIDANCE_STATE,
     TRACK_STATE,
-    DONE_STATE
+    DONE_STATE,
+    ERROR_STATE,
+    NUM_STATES
 } STATES;
+
+#define STATE_STR(__st)  state_strings[__st]
+// This is defined in main.c
+extern const char * state_strings[NUM_STATES];
 
 int next_state;
 int debug;

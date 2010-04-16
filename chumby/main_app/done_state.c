@@ -3,5 +3,5 @@
 #include "main.h"
 
 void done_state() {
-    next_state = INIT_STATE;
+    next_state = NAVIGATION_STATE;
 }
