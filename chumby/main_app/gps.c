@@ -1,3 +1,9 @@
+//GPS NMEA Driver + Comparitive positioning computation
+////	Written by Matthew Rasmussen, 2010
+////	Released under GPL license.
+////		!!When compiling for Chumby, use Lib Math ("-lm" flag) or	!!
+////		!!it won't work!						!!
+
 #include <termios.h>
 #include <stdio.h>
 #include <stdlib.h>
