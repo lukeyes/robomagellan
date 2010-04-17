@@ -20,7 +20,6 @@ static int tty;
 int compass_init()
 {
   struct termios compass_term;
-  fprintf(stderr,"init:1.\n");
 
   tty = open("/dev/compass", O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (!tty)
@@ -56,16 +55,16 @@ double compass_get_heading()
         if(retries++ > 50)
           return COMPASS_DATA_TIMEOUT;
 
-        if(read(tty, &buf[0], 1) < 0)
+        if(read(tty, buf, 1) < 0)
             usleep(500000);
 
         if(buf[0] == '$')
         {
             usleep(10000);
-            read(tty, &buf[0], 1);
+            read(tty, buf, 1);
             if(buf[0] == 'C')
             {
-                read(tty,&buf[0],5);
+                read(tty, buf,5);
                 for (count = 0; count < 5 && buf[count] != '.'; count++)
                 {
                     value *= 10;

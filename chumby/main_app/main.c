@@ -20,6 +20,7 @@
 #include "navigation_state.h"
 #include "init_state.h"
 #include "console.h"
+#include "lcd.h"
 
 // Must line up w/ STATES in main.h
 const char * state_strings[NUM_STATES] = {
@@ -33,18 +34,6 @@ const char * state_strings[NUM_STATES] = {
 
 void exit_routine (int sig);
 
-// char * rgp format is "rrr,ggg,bbb"were each letter is a base 10 digit
-void set_lcd_color(char * rgb) {
-    char cmd[128];
-    snprintf(cmd, sizeof(cmd), "imgtool --mode=draw --fill=%s --fb=0 > /dev/null 2>&1", rgb);
-    system(cmd);
-}
-void write_lcd(char * text, int row, int col) {
-    char cmd[64];
-    //snprintf(cmd, sizeof(cmd), "fbwrite --pos=%d,%d \"%s\n\" 2> /dev/null", col,row,text);
-    snprintf(cmd, sizeof(cmd), "fbwriteln %d %s", row,text);
-    system(cmd);
-}
 
 int main (int argc, char **argv) {
     int current_state;
@@ -136,11 +125,6 @@ void exit_routine (int sig) {
         // Enable comm line echo
         system("stty echo");
 
-        console_gotoxy(0, 15);
-        fprintf(stderr, "Stopping Car...");
-        console_gotoxy(0, 16);
-        fprintf(stderr, "Exiting");
-        console_gotoxy(0, 17);
         // Set LCD to gray 
         set_lcd_color("105,105,105");
         write_lcd("You Have Terminated Program Execution", 0, 0);

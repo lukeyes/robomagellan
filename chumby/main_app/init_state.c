@@ -20,7 +20,7 @@ void init_state() {
         if(debug)
             spawn_debug_thread();
 
-#if 0
+#ifdef USE_SONAR
         // initialize sonar sensors
         retval = sonar_init();
         if(retval != SONAR_NO_ERROR) {
@@ -28,7 +28,9 @@ void init_state() {
             next_state = ERROR_STATE;
             return;
         }
- #endif
+#endif
+
+#ifdef USE_COMPASS
         //initialize compass
         retval = compass_init();
         if(retval != COMPASS_NO_ERROR) {
@@ -36,71 +38,10 @@ void init_state() {
             next_state = ERROR_STATE;
             return;
         }
-    
+#endif
         // Spawn device threads
         spawn_device_threads();
         first = 0;
     }
     next_state = NAVIGATION_STATE;
 }
-#if 0
-int init_gps() {
-        int tty = initialize_gps();
-        if(tty < 0){
-                if(debug)
-                        fprintf(stderr,"Problem initializing GPS\n");
-                return 0;
-        }
-
-        else {
-                if(debug)
-                        fprintf(stderr,"GPS initialization successful");
-                return tty;
-        }
-}
-
-int init_i2c() {
-        int tty = initialize_i2c();
-        if(tty < 0){
-                if(debug)
-                        fprintf(stderr,"Problem initializing i2c\n");
-                return 0;       
-        }
-
-        else {
-                if(debug)
-                        fprintf(stderr,"i2c initialization successful");
-                return tty;
-        }
-}
-
-int init_camera()
-{
-        int tty = initialize_camera();
-        if(tty < 0) {
-                if(debug)
-                        fprintf(stderr,"Problem initializing camera\n");
-                return 0;       
-        }
-
-        else {
-                if(debug)
-                        fprintf(stderr,"camera initialization successful");
-                return tty;
-        }
-
-}
-int init_sonar(int tty)
-{
-        int retval = initialize_sonar(tty);
-        if(debug) {
-                if(retval==0)
-                        fprintf(stderr,"sonar initialization successful");
-        }
-}
-
-int init_compass(int tty)
-{
-        return 0;
-}
-#endif
