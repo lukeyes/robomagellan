@@ -2,7 +2,7 @@
  *	specified sonar sensor, the distance from that that
  *	sensor to the nearest object in inches.
  *
- *  Author:	Michael Ortiz (mtortiz.mail@gmail.com)
+ *  Author:	Michael Ortiz (mtortiz.mail@gmail.com
  *  Modified:	Scott Hollwedel (s.hollwedel@gmail.com)(1/22/10)
  */
 
@@ -12,12 +12,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
-
-#define SONAR_FIRST_ADDR 0xE0
-#define SONAR_LAST_ADDR 0xE2
-#define RANGE 140
-#define GAIN 0
-
+#include "sonar.h"
+#include "usb_i2c.h"
 
 int to = 0; //Timeout
 
@@ -78,7 +74,7 @@ void take_range( int tty )
 		write_i2c(tty, address, 0, 1,80);
 		read(tty, &output, 1);
 		address = address + 2;
-		usleep(100000); //Delay for sent pulses, can be removed if sonar facing in different directions
+		//usleep(100000); //Delay for sent pulses, can be removed if sonar facing in different directions
 	}
 }
 
@@ -90,7 +86,7 @@ int get_left_range(int tty)
 	return output;
 } 
 
-int get_center_range( int tty)
+int get_front_range( int tty)
 {
 	int output = 0;
 	write_i2c(tty, 0xE3, 3, 1, 0);

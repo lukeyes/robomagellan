@@ -4,8 +4,7 @@
 
 #include <termios.h>
 #include <fcntl.h>
-
-#define I2C_CMD 0x55
+#include "usb_i2c.h"
 
 int initialize_i2c()
 {
