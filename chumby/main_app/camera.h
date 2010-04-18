@@ -1,4 +1,4 @@
 int camera_init();
 void camera_start_tracking();
 void camera_stop_tracking();
-int camera_servo_position();
+int camera_cone_position();
