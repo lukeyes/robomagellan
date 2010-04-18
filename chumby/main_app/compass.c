@@ -29,10 +29,12 @@ int compass_init()
   cfsetspeed(&compass_term, B19200);
   compass_term.c_cflag = CS8 | CLOCAL | CREAD;
   compass_term.c_iflag = IGNPAR | IGNBRK;
+  compass_term.c_lflag = ICANON;
   compass_term.c_cc[VTIME] = 10;
   compass_term.c_cc[VMIN] = 0;
+  tcflush(fd, TCIFLUSH);
   tcsetattr(tty,TCSANOW,&compass_term);
-  usleep(50000);
+  //usleep(50000);
 
   return COMPASS_NO_ERROR;
 }
@@ -46,26 +48,26 @@ double compass_get_heading()
     double value = 0;
     int retries = 0;
     
-        tcflush(tty,TCIFLUSH);
-        usleep(100000);
-    
     //Disregard data until $C is found
     while( found != 1)
     {
-        if(retries++ > 50)
-          return COMPASS_DATA_TIMEOUT;
+        //if(retries++ > 50)
+          //return COMPASS_DATA_TIMEOUT;
 
-        if(read(tty, buf, 1) < 0)
-            usleep(500000);
+		while (!read(tty, buf, 63))
+			usleep(5000);
+
+        //if(read(tty, buf, 1) < 0)
+            //usleep(500000);
 
         if(buf[0] == '$')
         {
-            usleep(10000);
-            read(tty, buf, 1);
-            if(buf[0] == 'C')
+            //usleep(10000);
+            //read(tty, buf, 1);
+            if(buf[1] == 'C')
             {
-                read(tty, buf,5);
-                for (count = 0; count < 5 && buf[count] != '.'; count++)
+                //read(tty, buf,5);
+                for (count = 2; count < 7 && buf[count] != '.'; count++)
                 {
                     value *= 10;
                     value += buf[count] - '0';
