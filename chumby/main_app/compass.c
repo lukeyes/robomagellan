@@ -22,6 +22,7 @@ int compass_init()
   struct termios compass_term;
 
   tty = open("/dev/compass", O_RDWR | O_NOCTTY | O_NONBLOCK);
+  system("stty -F /dev/compass 19200");
   if (!tty)
     return COMPASS_OPEN_TTY_FAIL;
   tcgetattr(tty, &compass_term);
@@ -32,7 +33,7 @@ int compass_init()
   compass_term.c_lflag = ICANON;
   compass_term.c_cc[VTIME] = 10;
   compass_term.c_cc[VMIN] = 0;
-  tcflush(fd, TCIFLUSH);
+  tcflush(tty, TCIFLUSH);
   tcsetattr(tty,TCSANOW,&compass_term);
   //usleep(50000);
 
@@ -54,7 +55,7 @@ double compass_get_heading()
         //if(retries++ > 50)
           //return COMPASS_DATA_TIMEOUT;
 
-		while (!read(tty, buf, 63))
+		while (!read(tty, buf, 64))
 			usleep(5000);
 
         //if(read(tty, buf, 1) < 0)
@@ -79,3 +80,16 @@ double compass_get_heading()
     }
     return (value < 360.0 && value >= 0) ? value : COMPASS_DATA_CORRUPT;
 }
+
+#if 0
+main()
+{
+	int x = 0;
+	compass_init();
+	while (1)
+	{
+		x = compass_get_heading();
+	printf("value: %d\n",x);
+	}
+}
+#endif

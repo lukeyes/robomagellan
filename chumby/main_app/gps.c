@@ -36,6 +36,7 @@ int gps_init()
   cfsetspeed(&gps_term, B4800);
   gps_term.c_cflag = CS8 | CLOCAL | CREAD;
   gps_term.c_iflag = IGNPAR | IGNBRK;
+  gps_term.c_lflag = ICANON;
   gps_term.c_cc[VTIME] = 10;
   gps_term.c_cc[VMIN] = 0; 
   tcsetattr(tty,TCSAFLUSH,&gps_term);
@@ -71,7 +72,7 @@ double convert_nmea_ll(char * lat)
 //Read GPS coordinates and return lat and long - data is in NMEA 0183 format
 void gps_get_position(struct Location* position)
 {
-    unsigned char buf[38]; //Fill up with each line
+    unsigned char buf[64]; //Fill up with each line
     unsigned char latitude[11];
     unsigned char longitude[12];
     int count = 0;
@@ -80,28 +81,20 @@ void gps_get_position(struct Location* position)
     //Disregard data until $GPRMC is found and is valid
     while( found != 1)
     {
-        read(tty, &buf[0], 1);
-        if(buf[0] == '$')
+        read(tty, &buf[0], 64);
+        if(strncmp((char *)buf, "$GPRMC", 6) == 0)
         {
-            for(count = 0;count < 5;count++)
+            //Read in GPS data and get lat and long
+            found = 1;
+            for(count = 0;count < 37;count++)
             {
-                read(tty,&buf[count],1);
+                read(tty,&buf[count], 1);
             }
-            if(strncmp((char *)buf, "GPRMC", 5) == 0)
-            {   
-                //Read in GPS data and get lat and long
-                found = 1;
-                for(count = 0;count < 37;count++)
-                {
-                    read(tty,&buf[count], 1);
-                }
-                if(buf[12] == 'V');
-                    found = 0;
-                memcpy(latitude, &buf[14],11);
-                memcpy(longitude,&buf[26],12);
-            }
+            if(buf[12] == 'V');
+                found = 0;
+            memcpy(latitude, &buf[14],11);
+            memcpy(longitude,&buf[26],12);
         }
-    
     }
     position->latitude = convert_nmea_ll((char *)latitude);
     position->longitude = convert_nmea_ll((char *)longitude);
