@@ -4,7 +4,7 @@ enum {
     I2C_WRITE_ERR = -2,
     I2C_READ_ERR = -3,
     FRONT_SONAR_INIT_FAIL = -4,
-    LEFT_SONAR_INIT_FAIL = -5,
+    RIGHT_SONAR_INIT_FAIL = -5,
     NUM_SONAR_ERRORS = 6,
 } SONAR_ERROR_CODES;
 
@@ -14,5 +14,5 @@ extern const char * sonar_err_msgs[NUM_SONAR_ERRORS];
 
 int sonar_init();
 int sonar_take_range();
-int sonar_get_left();
+int sonar_get_right();
 int sonar_get_front();

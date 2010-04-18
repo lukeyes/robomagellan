@@ -6,7 +6,7 @@
  *  This file contains sensory data and state machine info that is global
  *  all robomagellan control modules.
  */
-//#define USE_SONAR
+#define USE_SONAR
 //#define USE_COMPASS
 //#define USE_GPS
 //#define USE_CAMERA
@@ -16,7 +16,7 @@ struct {
     char current_state_str [32]; // Current state string
     char error_str [32]; // Error message
     double front_sonar; // distance from front sonar to object in meters
-    double left_sonar; // distance from left sonar to object in meters
+    double right_sonar; // distance from left sonar to object in meters
     double current_lat; // Current latitude in degrees
     double current_long; // Current longitude in degrees
     double target_lat; // Latitude of target in degrees

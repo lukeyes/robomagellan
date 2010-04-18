@@ -22,7 +22,7 @@ static char * debug_output =
         "  current state: \n"
         "          error: \n"
         "    front sonar: \n"
-        "     left sonar: \n"
+        "    right sonar: \n"
         "    current lat: \n"
         "   current long: \n"
         "     target lat: \n"
@@ -59,25 +59,28 @@ void * gps_thread(void * ptr) {
 
 void * compass_thread(void * ptr) {
     void * ret_ptr = NULL;
+#ifdef USE_COMPASS
     double retval;
     while (1) {
-#ifdef USE_COMPASS
         retval = compass_get_heading();
         if(retval < 0)
             snprintf(state_data.error_str, sizeof(state_data.error_str), COMPASS_ERROR_STR((int)retval));
         else
             state_data.compass_heading = compass_get_heading();
-#endif
+    }
+#else
+    while (1) {
         sleep(1);
     }
+#endif
     return ret_ptr;
 }
 
 void * sonar_thread(void * ptr) {
     void * ret_ptr = NULL;
+#ifdef USE_SONAR
     int retval;
     while (1) {
-#ifdef USE_SONAR
         retval = sonar_take_range();
         if(retval != SONAR_NO_ERROR) {
             snprintf(state_data.error_str, sizeof(state_data.error_str), SONAR_ERROR_STR(retval));
@@ -89,17 +92,19 @@ void * sonar_thread(void * ptr) {
             else
                 state_data.front_sonar = retval;
 
-            // Read left sonar range
-            retval = sonar_get_left();
+            // Read right sonar range
+            retval = sonar_get_right();
             if(retval < 0)
                 snprintf(state_data.error_str, sizeof(state_data.error_str), SONAR_ERROR_STR(retval));
             else
-                state_data.left_sonar = retval;
+                state_data.right_sonar = retval;
         }
-#else
-        sleep(1);
-#endif
     }
+#else
+    while (1) {
+        sleep(1);
+    }
+#endif
     return ret_ptr;
 }
 
@@ -125,7 +130,7 @@ void * debug_output_thread(void * ptr) {
         console_gotoxy(18, 3);
         fprintf(stderr,"%6.2fm", state_data.front_sonar);
         console_gotoxy(18, 4);
-        fprintf(stderr,"%6.2fm", state_data.left_sonar);
+        fprintf(stderr,"%6.2fm", state_data.right_sonar);
         console_gotoxy(18, 5);
         fprintf(stderr,"%6.2fº", state_data.current_lat);
         console_gotoxy(18, 6);

@@ -34,7 +34,6 @@ const char * state_strings[NUM_STATES] = {
 
 void exit_routine (int sig);
 
-
 int main (int argc, char **argv) {
     int current_state;
     debug = 0;

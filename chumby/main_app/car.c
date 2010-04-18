@@ -30,7 +30,7 @@ int init_car() {
     return CAR_NO_ERROR;
 }
 
-int car_drive(int percent) {
+int car_set_speed(int percent) {
     int retval = 0;
 
     if(percent > 100 || percent < -100)
@@ -53,7 +53,7 @@ int car_drive(int percent) {
     return CAR_NO_ERROR;
 }
 
-int car_turn(int percent) { 
+int car_set_turn(int percent) { 
     int retval = 0;
 
     if(percent > 100 || percent < -100)

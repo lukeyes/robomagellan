@@ -15,7 +15,7 @@
 #include "usb_i2c.h"
 #include "sonar.h"
 
-#define LEFT_SONAR_ADDR 0xE0
+#define RIGHT_SONAR_ADDR 0xE0
 #define FRONT_SONAR_ADDR 0xE2
 #define READ_BIT 0x1
 #define RANGE 140
@@ -28,14 +28,14 @@ const char * sonar_err_msgs[NUM_SONAR_ERRORS] = {
     "I2C_WRITE_ERR",
     "I2C_READ_ERR",
     "FRONT_SONAR_INIT_FAIL",
-    "LEFT_SONAR_INIT_FAIL"
+    "RIGHT_SONAR_INIT_FAIL"
 };
 
 static int tty;
 
 int sonar_init()
 {
-    int address = LEFT_SONAR_ADDR; //Address of 1st sensor
+    int address = RIGHT_SONAR_ADDR; //Address of 1st sensor
     int output=0;
     int retries=0;
     tty = initialize_i2c(); // This should be removed if other non-sonar devices on I2C Bus
@@ -44,7 +44,7 @@ int sonar_init()
         return I2C_INIT_FAIL;
 
 //Make sure everything works, in this case read the software version #
-    for (address=LEFT_SONAR_ADDR; address <= FRONT_SONAR_ADDR; address += 2)
+    for (address=RIGHT_SONAR_ADDR; address <= FRONT_SONAR_ADDR; address += 2)
     {
         output = 0;
         retries = 0;
@@ -52,7 +52,7 @@ int sonar_init()
         {
             if(retries++ > 20) {
                 close(tty);
-                return (address == LEFT_SONAR_ADDR) ? LEFT_SONAR_INIT_FAIL : FRONT_SONAR_INIT_FAIL;
+                return (address == RIGHT_SONAR_ADDR) ? RIGHT_SONAR_INIT_FAIL : FRONT_SONAR_INIT_FAIL;
             }
             if(write_i2c(tty, address | READ_BIT, 0, 1, 0) < 0) {
                 close(tty);
@@ -68,7 +68,7 @@ int sonar_init()
     }
 
     // Set new range(6m)
-    address = LEFT_SONAR_ADDR;
+    address = RIGHT_SONAR_ADDR;
     while ( address <= FRONT_SONAR_ADDR )
     {
         if(write_i2c(tty, address, 2, 1,RANGE) < 0) {
@@ -83,7 +83,7 @@ int sonar_init()
     }
 
     // Set new gain corresponding to range
-    address = LEFT_SONAR_ADDR;
+    address = RIGHT_SONAR_ADDR;
     while ( address <= FRONT_SONAR_ADDR )
     {
         if(write_i2c(tty, address, 1, 1,GAIN) < 0) {
@@ -102,7 +102,7 @@ int sonar_init()
 
 int sonar_take_range()
 {
-    int address = LEFT_SONAR_ADDR; //Address of 1st sensor
+    int address = RIGHT_SONAR_ADDR; //Address of 1st sensor
     int output = 0;
     // Take range
     while ( address <= FRONT_SONAR_ADDR )
@@ -121,10 +121,10 @@ int sonar_take_range()
     return SONAR_NO_ERROR;
 }
 
-int sonar_get_left()
+int sonar_get_right()
 {
     int output = 0;
-    if(write_i2c(tty, LEFT_SONAR_ADDR | READ_BIT, 3, 1, 0) < 0) {
+    if(write_i2c(tty, RIGHT_SONAR_ADDR | READ_BIT, 3, 1, 0) < 0) {
         close(tty);
         return I2C_WRITE_ERR;
     }
