@@ -119,7 +119,7 @@ int camera_cone_position(int tty)
 	}
 	else
 	{
-		position = cone_position(tty);
+		position = camera_cone_position(tty);
 	}
 
 	return position;
