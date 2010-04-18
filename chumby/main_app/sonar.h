@@ -14,5 +14,5 @@ extern const char * sonar_err_msgs[NUM_SONAR_ERRORS];
 
 int sonar_init();
 int sonar_take_range();
-int sonar_get_right();
-int sonar_get_front();
+double sonar_get_right();
+double sonar_get_front();

@@ -11,12 +11,11 @@
 #include "gps.h"
 #include "console.h"
 
-
 void * gps_thread(void * ptr);
 void * compass_thread(void * ptr);
 void * sonar_thread(void * ptr);
 void * camera_thread(void * ptr);
-void * debug_output_thread(void * ptr);
+void * debug_thread(void * ptr);
 
 static char * debug_output = 
         "  current state: \n"
@@ -30,23 +29,30 @@ static char * debug_output =
         "compass heading: \n"
         " target heading: \n"
         "target distance: \n"
-        "   camera servo: \n"
+        "  cone position: \n"
         "          speed: \n"
         "           turn: \n";
 
 void spawn_device_threads() {
     pthread_t gps_t, compass_t, sonar_t, camera_t;
 
-    // Launch all threads
+#ifdef USE_GPS
     pthread_create(&gps_t, NULL, gps_thread, NULL);
+#endif
+#ifdef USE_COMPASS
     pthread_create(&compass_t, NULL, compass_thread, NULL);
+#endif
+#ifdef USE_SONAR
     pthread_create(&sonar_t, NULL, sonar_thread, NULL);
+#endif
+#ifdef USE_CAMERA
     pthread_create(&camera_t, NULL, camera_thread, NULL);
+#endif
 }
 
 void spawn_debug_thread () {
-    pthread_t debug_output_t;
-    pthread_create(&debug_output_t, NULL, debug_output_thread, NULL);
+    pthread_t debug_t;
+    pthread_create(&debug_t, NULL, debug_thread, NULL);
 }
 
 void * gps_thread(void * ptr) {
@@ -59,7 +65,6 @@ void * gps_thread(void * ptr) {
 
 void * compass_thread(void * ptr) {
     void * ret_ptr = NULL;
-#ifdef USE_COMPASS
     double retval;
     while (1) {
         retval = compass_get_heading();
@@ -68,55 +73,51 @@ void * compass_thread(void * ptr) {
         else
             state_data.compass_heading = compass_get_heading();
     }
-#else
-    while (1) {
-        sleep(1);
-    }
-#endif
     return ret_ptr;
 }
 
 void * sonar_thread(void * ptr) {
     void * ret_ptr = NULL;
-#ifdef USE_SONAR
-    int retval;
+    double retval;
     while (1) {
         retval = sonar_take_range();
         if(retval != SONAR_NO_ERROR) {
-            snprintf(state_data.error_str, sizeof(state_data.error_str), SONAR_ERROR_STR(retval));
+            snprintf(state_data.error_str, sizeof(state_data.error_str), SONAR_ERROR_STR((int)retval));
         } else {
             // Read front sonar range
             retval = sonar_get_front();
             if(retval < 0)
-                snprintf(state_data.error_str, sizeof(state_data.error_str), SONAR_ERROR_STR(retval));
+                snprintf(state_data.error_str, sizeof(state_data.error_str), SONAR_ERROR_STR((int)retval));
             else
                 state_data.front_sonar = retval;
 
             // Read right sonar range
             retval = sonar_get_right();
             if(retval < 0)
-                snprintf(state_data.error_str, sizeof(state_data.error_str), SONAR_ERROR_STR(retval));
+                snprintf(state_data.error_str, sizeof(state_data.error_str), SONAR_ERROR_STR((int)retval));
             else
                 state_data.right_sonar = retval;
         }
     }
-#else
-    while (1) {
-        sleep(1);
-    }
-#endif
     return ret_ptr;
 }
 
 void * camera_thread(void * ptr) {
     void * ret_ptr = NULL;
+    int retval;
     while (1) {
-        sleep(1);
+        retval = camera_cone_position();
+        fprintf(stderr,"camera_cone_position returned: %s\n", CAMERA_ERROR_STR(retval));
+        sleep(2);
+        if(retval < 0)
+            snprintf(state_data.error_str, sizeof(state_data.error_str), CAMERA_ERROR_STR(retval));
+        else
+            state_data.cone_position = retval;
     }
     return ret_ptr;
 }
 
-void * debug_output_thread(void * ptr) {
+void * debug_thread(void * ptr) {
     void * ret_ptr = NULL;
     // Initialize debug display 
     console_clrscr();
@@ -146,13 +147,13 @@ void * debug_output_thread(void * ptr) {
         console_gotoxy(18, 11);
         fprintf(stderr,"%6.2fm", state_data.target_distance);
         console_gotoxy(18, 12);
-        fprintf(stderr,"%6.2fº", state_data.camera_servo);
+        fprintf(stderr,"%6dº", state_data.cone_position);
         console_gotoxy(18, 13);
         fprintf(stderr,"%6d%%", state_data.speed);
         console_gotoxy(18, 14);
         fprintf(stderr,"%6d%%", state_data.turn);
         console_gotoxy(0, 17);
-        usleep(500000);
+        usleep(200000);
     }
     return ret_ptr;
 }

@@ -24,7 +24,7 @@ struct {
     double compass_heading; // compass heading in degrees
     double target_heading; // target heading degress
     double target_distance; // distance to target in meters
-    double camera_servo; // camera servo angle in degrees 
+    int cone_position; // x-position of the cone from camera perspective
     int speed; // -100 reverse, 0 stop, +100 forward
     int turn;  // -100 left, 0 center, +100 forward
 } state_data;

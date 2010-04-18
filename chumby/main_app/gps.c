@@ -133,17 +133,17 @@ double calc_target_heading(struct Location* pos, struct Location* dest)
     return bearing;
 }
 
-#if 1
+#if 0
 main()
 {
         struct Location pos, dest;
         dest.latitude = 32.881136091348665;
         dest.longitude = -117.23563715815544;
 
-		while (1)
-		{
-			gps_get_position(&pos);
-    		printf("From %f,%f to %f,%f: %f  at heading %f\n",pos.latitude,pos.longitude,dest.latitude,dest.longitude,calc_target_distance(&pos,&dest),calc_target_heading(&pos,&dest));
-		}
+        while (1)
+        {
+            gps_get_position(&pos);
+            printf("From %f,%f to %f,%f: %f  at heading %f\n",pos.latitude,pos.longitude,dest.latitude,dest.longitude,calc_target_distance(&pos,&dest),calc_target_heading(&pos,&dest));
+        }
 }
 #endif

@@ -13,3 +13,5 @@ extern const char * car_err_msgs[NUM_CAR_ERRORS];
 int init_car();
 int car_set_speed(int percent);
 int car_set_turn(int percent);
+int car_get_speed();
+int car_get_turn();

@@ -31,16 +31,21 @@ const char * sonar_err_msgs[NUM_SONAR_ERRORS] = {
     "RIGHT_SONAR_INIT_FAIL"
 };
 
-static int tty;
+static int tty=0;
 
 int sonar_init()
 {
     int address = RIGHT_SONAR_ADDR; //Address of 1st sensor
     int output=0;
     int retries=0;
+
+    // If a reinit occurs
+    if(tty)
+        close(tty);
+
     tty = initialize_i2c(); // This should be removed if other non-sonar devices on I2C Bus
 
-    if (!tty)
+    if (tty < 0)
         return I2C_INIT_FAIL;
 
 //Make sure everything works, in this case read the software version #
@@ -50,19 +55,16 @@ int sonar_init()
         retries = 0;
         do
         {
-            if(retries++ > 20) {
-                close(tty);
+            if(retries++ > 20)
                 return (address == RIGHT_SONAR_ADDR) ? RIGHT_SONAR_INIT_FAIL : FRONT_SONAR_INIT_FAIL;
-            }
-            if(write_i2c(tty, address | READ_BIT, 0, 1, 0) < 0) {
-                close(tty);
+
+            if(write_i2c(tty, address | READ_BIT, 0, 1, 0) < 0)
                 return I2C_WRITE_ERR;
-            }
+
             usleep(10000);
-            if(read(tty,&output,1) < 0) {
-                close(tty);
+
+            if(read(tty,&output,1) < 0)
                 return I2C_READ_ERR;
-            }
         } 
         while (output != 10);
     }
@@ -71,14 +73,12 @@ int sonar_init()
     address = RIGHT_SONAR_ADDR;
     while ( address <= FRONT_SONAR_ADDR )
     {
-        if(write_i2c(tty, address, 2, 1,RANGE) < 0) {
-            close(tty);
+        if(write_i2c(tty, address, 2, 1,RANGE) < 0)
             return I2C_WRITE_ERR;
-        }
-        if(read(tty,&output,1) < 0) {
-            close(tty);
+
+        if(read(tty,&output,1) < 0)
             return I2C_READ_ERR;
-        }
+
         address= address + 2;
     }
 
@@ -86,14 +86,12 @@ int sonar_init()
     address = RIGHT_SONAR_ADDR;
     while ( address <= FRONT_SONAR_ADDR )
     {
-        if(write_i2c(tty, address, 1, 1,GAIN) < 0) {
-            close(tty);
+        if(write_i2c(tty, address, 1, 1,GAIN) < 0)
             return I2C_WRITE_ERR;
-        }
-        if(read(tty,&output,1) < 0) {
-            close(tty);
+
+        if(read(tty,&output,1) < 0)
             return I2C_READ_ERR;
-        }
+
         address = address + 2;
     }
     
@@ -107,44 +105,45 @@ int sonar_take_range()
     // Take range
     while ( address <= FRONT_SONAR_ADDR )
     {
-        if(write_i2c(tty, address, 0, 1,80) < 0) { 
-            close(tty);
+        if(write_i2c(tty, address, 0, 1,80) < 0)
             return I2C_WRITE_ERR;
-        }
-        if(read(tty, &output, 1) < 0) {
-            close(tty);
+
+        if(read(tty, &output, 1) < 0)
             return I2C_READ_ERR;
-        }
+
         address = address + 2;
     }
     usleep(70000); //Delay for ranging to complete 
     return SONAR_NO_ERROR;
 }
 
-int sonar_get_right()
+double sonar_get_right()
 {
     int output = 0;
-    if(write_i2c(tty, RIGHT_SONAR_ADDR | READ_BIT, 3, 1, 0) < 0) {
-        close(tty);
+    if(write_i2c(tty, RIGHT_SONAR_ADDR | READ_BIT, 3, 1, 0) < 0)
         return I2C_WRITE_ERR;
-    }
-    if(read(tty,&output,1) < 0) {
-        close(tty);
+
+    if(read(tty,&output,1) < 0)
         return I2C_READ_ERR;
-    }
-    return output;
+    
+    if(!output)
+        output = 0xFF;
+    return ((double)output) / 39.37;
 }
 
-int sonar_get_front()
+double sonar_get_front()
 {
-    int output = 0;
-    if(write_i2c(tty, FRONT_SONAR_ADDR | READ_BIT, 3, 1, 0) < 0) {
-        close(tty);
+    int inches=0;
+    double meters=0;
+    if(write_i2c(tty, FRONT_SONAR_ADDR | READ_BIT, 3, 1, 0) < 0)
         return I2C_WRITE_ERR;
-    }
-    if(read(tty, &output,1) < 0) {
-        close(tty);
+
+    if(read(tty, &inches,1) < 0)
         return I2C_READ_ERR;
-    }
-    return output;
+
+    if(!inches)
+        inches = 0xFF;
+
+    meters = inches / 39.37;
+    return meters;
 }

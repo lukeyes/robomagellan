@@ -9,22 +9,26 @@
 // Must match compass error codes in compass.h
 const char * compass_err_msgs[NUM_COMPASS_ERRORS] = {
     "NO_ERROR",
-    "COMPASS_OPEN_TTY_FAIL",
-    "COMPASS_TTY_READ_FAIL",
+    "COMPASS_OPEN_FAIL",
+    "COMPASS_READ_FAIL",
     "COMPASS_DATA_CORRUPT",
     "COMPASS_DATA_TIMEOUT"
 };
 
-static int tty;
+static int tty=0;
 
 int compass_init()
 {
   struct termios compass_term;
 
+    // If a reinit occurs
+  if(tty)
+    close(tty);
+
   tty = open("/dev/compass", O_RDWR | O_NOCTTY | O_NONBLOCK);
   system("stty -F /dev/compass 19200");
-  if (!tty)
-    return COMPASS_OPEN_TTY_FAIL;
+  if (tty < 0)
+    return COMPASS_OPEN_FAIL;
   tcgetattr(tty, &compass_term);
   cfmakeraw(&compass_term);
   cfsetspeed(&compass_term, B19200);
@@ -48,26 +52,24 @@ double compass_get_heading()
     int count = 0;
     double value = 0;
     int retries = 0;
+    int num_bytes=0;
     
     //Disregard data until $C is found
     while( found != 1)
     {
-        //if(retries++ > 50)
-          //return COMPASS_DATA_TIMEOUT;
+        while (!(num_bytes = read(tty, buf, 64))) {
+            usleep(5000);
+            if(retries++ > 50)
+                return COMPASS_DATA_TIMEOUT;
+        }
 
-		while (!read(tty, buf, 64))
-			usleep(5000);
-
-        //if(read(tty, buf, 1) < 0)
-            //usleep(500000);
+        if(num_bytes < 0)
+            return COMPASS_READ_FAIL;
 
         if(buf[0] == '$')
         {
-            //usleep(10000);
-            //read(tty, buf, 1);
             if(buf[1] == 'C')
             {
-                //read(tty, buf,5);
                 for (count = 2; count < 7 && buf[count] != '.'; count++)
                 {
                     value *= 10;
@@ -78,18 +80,20 @@ double compass_get_heading()
             }
         }
     }
+
+
     return (value < 360.0 && value >= 0) ? value : COMPASS_DATA_CORRUPT;
 }
 
 #if 0
 main()
 {
-	int x = 0;
-	compass_init();
-	while (1)
-	{
-		x = compass_get_heading();
-	printf("value: %d\n",x);
-	}
+    int x = 0;
+    compass_init();
+    while (1)
+    {
+        x = compass_get_heading();
+    printf("value: %d\n",x);
+    }
 }
 #endif

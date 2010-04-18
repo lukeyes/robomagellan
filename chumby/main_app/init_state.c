@@ -39,6 +39,24 @@ void init_state() {
             return;
         }
 #endif
+
+#ifdef USE_CAMERA
+        //initialize camera
+        retval = camera_init();
+        if(retval != CAMERA_NO_ERROR) {
+            snprintf(state_data.error_str, sizeof(state_data.error_str), CAMERA_ERROR_STR(retval));
+            next_state = ERROR_STATE;
+            return;
+        }
+        fprintf(stderr,"camera_init returned: %s\n", CAMERA_ERROR_STR(retval));
+        retval = camera_start_tracking();
+        if(retval != CAMERA_NO_ERROR) {
+            snprintf(state_data.error_str, sizeof(state_data.error_str), CAMERA_ERROR_STR(retval));
+            next_state = ERROR_STATE;
+            return;
+        }
+        fprintf(stderr,"camera_start_tracking returned: %s\n", CAMERA_ERROR_STR(retval));
+#endif
         // Spawn device threads
         spawn_device_threads();
         first = 0;
