@@ -71,7 +71,7 @@ void take_range( int tty )
         }
 }
 
-int get_front_range(int tty)
+int get_right_range(int tty)
 {
         int output = 0;
         write_i2c(tty, 0xE1, 3, 1, 0);
@@ -79,7 +79,7 @@ int get_front_range(int tty)
         return output;
 } 
 
-int get_right_range( int tty)
+int get_front_range( int tty)
 {
         int output = 0;
         write_i2c(tty, 0xE3, 3, 1, 0);

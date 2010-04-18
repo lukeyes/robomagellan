@@ -17,8 +17,7 @@ int ltemp = 0;
 
 void drive_forward(int percent) {
     pwm_drive(PWM_IDLE_MIN - ((PWM_IDLE_MIN - PWM_MAX_FORWARD_SPEED) * percent / 100));
-	temp = (PWM_IDLE_MIN - ((PWM_IDLE_MIN - PWM_MAX_FORWARD_SPEED) * percent / 100));
-	fprintf(stderr,"Drive Forward Value: %x\n\n",temp);
+    temp = (PWM_IDLE_MIN - ((PWM_IDLE_MIN - PWM_MAX_FORWARD_SPEED) * percent / 100));
 }
 
 void drive_reverse(int percent) {
@@ -26,13 +25,12 @@ void drive_reverse(int percent) {
 }
 
 void stop_car() {
-    pwm_drive(PWM_IDLE_MIN);
+    pwm_drive(PWM_IDLE_STOP);
 }
 
 void turn_left(int percent) {
     pwm_turn(PWM_IDLE_MAX+((PWM_MAX_LEFT_TURN-PWM_IDLE_MAX) * percent / 100));
-	ltemp = PWM_IDLE_MAX+((PWM_MAX_LEFT_TURN-PWM_IDLE_MAX) * percent / 100);
-	fprintf(stderr,"TURN LEFT PWM VALUE: %x\n\n",ltemp);
+    ltemp = PWM_IDLE_MAX+((PWM_MAX_LEFT_TURN-PWM_IDLE_MAX) * percent / 100);
 }
 
 void turn_right(int percent) { 
@@ -40,11 +38,11 @@ void turn_right(int percent) {
 }
 
 void turn_center() {
-    pwm_turn(PWM_IDLE_MIN);
+    pwm_turn(PWM_IDLE_CENTER);
 }
 
 void init_car() {
     pwm_init(); // configure pwm pins
-	pwm_drive(PWM_IDLE_MIN); // make sure wheels are not spinning
-	pwm_turn(PWM_IDLE_MIN); // center the wheels
+    pwm_drive(PWM_IDLE_STOP);
+    pwm_turn(PWM_IDLE_CENTER);
 }

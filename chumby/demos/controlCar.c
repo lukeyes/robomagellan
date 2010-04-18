@@ -11,9 +11,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <signal.h>
 
 /* Driving Directions */
 #define FORWARD 0x0
@@ -35,20 +35,16 @@
 typedef unsigned char   u8;
 typedef unsigned short  u16;
 
-unsigned int speed = 0x1270;
-unsigned int rturn = 0x0B9A;
+unsigned int speed = 0x1250;
 unsigned int lturn = 0x18BA;
-unsigned int center = 0x12c0;
+unsigned int stop = 0x12a4; // veers to the left w/ 12A4
+unsigned int center = 0x11C3; // veers to the left w/ 12A4
+                              // 11DC veers slightly left
+                              // 11AA Veers slightly right
+unsigned int rturn = 0x0B9A;
 
-/* Maps speeds to register value setting */
-u16 speedToRegvals [5][2] = {
-//   forward    reverse
-    {0x1234,    0x1234},
-    {0x1234,    0x1234},
-    {0x1234,    0x1234},
-    {0x1234,    0x1234},
-    {0x1234,    0x1234},
-};
+static int current_speed=0;
+static int current_turn=0;
 
 /* Car control functions */
 void drive(u8 direction);
@@ -140,6 +136,7 @@ int pwm_speed(int value)
 void drive(u8 direction) {
     switch(direction) {
         case FORWARD:
+            current_speed -= 5;
             if(carState.direction == REVERSE) {
                 pwm_speed(center);
                 carState.direction = STOP;
@@ -149,14 +146,14 @@ void drive(u8 direction) {
             }
             break;
         case REVERSE:
-	    if(carState.direction == FORWARD) {
-	    	pwm_speed(center);
-	    	carState.direction = STOP;
-	    }
+        if(carState.direction == FORWARD) {
+            pwm_speed(stop);
+            carState.direction = STOP;
+        }
             break;
         case STOP:
             //TODO: stop the car
-            pwm_speed(center);
+            pwm_speed(stop);
             carState.direction = STOP;
             break;
     }
@@ -164,6 +161,7 @@ void drive(u8 direction) {
 void turn(u8 orientation) {
     switch(orientation) {
         case LEFT:
+#if 0
             if(carState.orientation == RIGHT) {
                 //TODO: orient to center
                 pwm_turn(center);
@@ -173,6 +171,9 @@ void turn(u8 orientation) {
                 pwm_turn(lturn);
                 carState.orientation = LEFT;
             }
+#endif
+            current_turn += 50;
+            pwm_turn(current_turn);
             break;
         case CENTER:
             //TODO: orient to center
@@ -180,7 +181,10 @@ void turn(u8 orientation) {
             carState.orientation = CENTER;
             break;
         case RIGHT:
-            if(carState.orientation == LEFT) {
+            current_turn -= 50;
+            pwm_turn(current_turn);
+#if 0
+           if(carState.orientation == LEFT) {
                 //TODO: orient to center
                 pwm_turn(center);
                 carState.orientation = CENTER;
@@ -189,6 +193,7 @@ void turn(u8 orientation) {
                 pwm_turn(rturn);
                 carState.orientation = RIGHT;
             }
+#endif
             break;
     }
 }
@@ -197,49 +202,78 @@ void increaseSpeed() {
 void decreaseSpeed() {
 }
 
-int main (void) {
+void exit_routine (int sig);
+
+int main (int argc, char * argv[]) {
     char key = 0;
     char lastKey = 0;
+    char c=0;
 
     carState.speed = 0;
     carState.direction = STOP;
     carState.orientation = CENTER;
 
-	pwm_speed(center);
-	pwm_turn(center);
+    pwm_speed(stop);
+    pwm_turn(center);
     initialize_motor();
+
+    // Enable Control-C detection
+    signal(SIGINT, exit_routine);
+
+    if((c = getopt(argc, argv, "s:")) != -1) {
+        switch(c) {
+            case 's':
+                if(!optarg)
+                    exit(0);
+                sscanf(optarg, "%x", &speed);
+                break;
+            case '?':
+                exit(0);
+                break;
+        }
+    }
+
+    current_speed = speed;
+    current_turn = center;
+
     while (1) {
+        if(key != '\n') {
+            fprintf(stderr, "current speed is: %x\n", current_speed);
+            fprintf(stderr, "current turn is: %x\n", current_turn);
+            fprintf(stderr, "\n");
+        }
+
         key = (char)getc(stdin);
-        switch(key) {
+        switch(key){
             case 'w': // Drive forward
-                printf("you pressed %c\n", key);
                 drive(FORWARD);
                 break;
             case 's': // Drive in reverse
-                printf("you pressed %c\n", key);
                 drive(REVERSE);
                 break;
             case 'a': // Turn left
-                printf("you pressed %c\n", key);
                 turn(LEFT);
                 break;
             case 'd': // Turn right
-                printf("you pressed %c\n", key);
                 turn(RIGHT);
                 break;
             case '-': // Decrease speed
-                printf("you pressed %c\n", key);
                 decreaseSpeed();
                 break;
             case '=': // Increase speed
-                printf("you pressed %c\n", key);
                 increaseSpeed();
                 break;
             case 'x': // Stop
-                printf("you pressed %c\n", key);
                 drive(STOP);
                 break;
         }
     }
     return 0;
+}
+
+void exit_routine (int sig) {
+    drive(STOP);
+    turn(CENTER);
+    fprintf(stderr, "stopped car\n");
+    exit(0);
 }
