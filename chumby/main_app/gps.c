@@ -30,8 +30,7 @@ int gps_init()
 {
   struct termios gps_term;
 
-  //tty = open("/dev/gps", O_RDWR | O_NOCTTY);
-  tty = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NONBLOCK);
+  tty = open("/dev/gps", O_RDWR | O_NOCTTY);
   tcgetattr(tty, &gps_term);
   cfmakeraw(&gps_term);
   cfsetspeed(&gps_term, B4800);
@@ -100,7 +99,7 @@ int gps_get_position(struct Location* position)
 			//Read in GPS data and get lat and long
 			found = 1;
 			buf[63] = 0;
-			fprintf(stderr,"\nString: %s\n\n",buf);
+			//fprintf(stderr,"\nString: %s\n\n",buf);
 			memcpy(latitude, &buf[20],11);
 			memcpy(longitude,&buf[32],12);
 			if(buf[18] == 'A')
@@ -130,8 +129,8 @@ double calc_target_distance(struct Location* pos, struct Location* dest)
 
 		dist = acos((cos(a1) * cos(b1) * cos(a2) * cos(b2)) + (cos(a1) * sin(b1) * cos(a2) * sin(b2)) + (sin(a1) * sin(a2))) * R;
 
-		printf("a1: %f\nb1: %f\na2: %f\nb2: %f\n",a1,b1,a2,b2);
-	printf("distance: %f meters.\n",dist);
+		//printf("a1: %f\nb1: %f\na2: %f\nb2: %f\n",a1,b1,a2,b2);
+	//printf("distance: %f meters.\n",dist);
 
 	return dist;
 }
