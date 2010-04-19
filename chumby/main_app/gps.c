@@ -31,6 +31,8 @@ int gps_init()
   struct termios gps_term;
 
   tty = open("/dev/gps", O_RDWR | O_NOCTTY);
+  system("stty -F /dev/compass 19200");
+
   tcgetattr(tty, &gps_term);
   cfmakeraw(&gps_term);
   cfsetspeed(&gps_term, B4800);
