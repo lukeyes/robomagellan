@@ -1,25 +1,33 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "main.h"
+#include "car.h"
+#include "object_avoidance_state.h"
 
 void object_avoidance_state() {
-#if 0
-    car_set_speed(65);
-    while(front_sonar < THRESH || right_sonar <  THRESH) {
-        if(front_sonar < THRESH) {
-            if(front_sonar > 95) //do 20% turn
-                turn_left(20);
-            else if(front_sonar > 60) //do 60% turn
-                turn_left(60);
-            else if(front_sonar > 25)
-                turn_left(100); //do max turn
-            else
-                stop_car();
+    double last_heading = state_data.compass_heading;
+    car_set_speed(object_avoidance_speed);
+
+    while(state_data.front_sonar < OBJECT_DETECT_THRESH ||
+          state_data.right_sonar <  OBJECT_DETECT_THRESH) {
+
+        if(state_data.front_sonar < OBJECT_DETECT_THRESH) {
+            if(state_data.front_sonar > 2) //do 20% turn
+                car_set_turn(-20);
+            else if(state_data.front_sonar > 1) //do 60% turn
+                car_set_turn(-60);
+            else if(state_data.front_sonar > 0.5)
+                car_set_turn(-100); //do max turn
+            else {
+                car_set_speed(0);
+                return;
+            }
         }
         else
-            turn_center();
+            car_set_turn(0);
+       usleep(1000);
     }
 
-#endif
-    next_state = TRACK_STATE;
+    next_state = NAVIGATION_STATE;
 }

@@ -36,14 +36,31 @@ void exit_routine (int sig);
 
 int main (int argc, char **argv) {
     int current_state;
+    char c;
     debug = 0;
 
     // Enable Control-C detection
     signal(SIGINT, exit_routine);
 
-    // Check for debug option
-    if(getopt(argc, argv, "d") != -1)
-        debug = 1;
+    
+    navigation_speed = 72;
+    object_avoidance_speed = 60;
+
+    while ((c = getopt(argc, argv, "ds:")) != 255) {
+        switch(c) {
+            case 's':
+                if(!optarg)
+                    exit(0);
+                sscanf(optarg, "%d,%d", &navigation_speed, &object_avoidance_speed);
+                break;
+            case 'd':
+                debug = 1;
+                break;
+            case '?':
+                exit(0);
+                break;
+        }
+    }
 
     if(debug)
         //Disable comm line echo
@@ -111,7 +128,7 @@ int main (int argc, char **argv) {
                     sleep(1);
                 break;
         }
-        sleep(2);
+        usleep(1000);
     }
 }
 

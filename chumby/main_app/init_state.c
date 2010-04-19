@@ -11,6 +11,7 @@
 #include "compass.h"
 #include "camera.h"
 #include "gps.h"
+#include "car.h"
 
 void init_state() {
     static int first = 1;
@@ -56,6 +57,14 @@ void init_state() {
             return;
         }
         fprintf(stderr,"camera_start_tracking returned: %s\n", CAMERA_ERROR_STR(retval));
+#endif
+#ifdef USE_CAR
+        retval = init_car();
+        if(retval != CAR_NO_ERROR) {
+            snprintf(state_data.error_str, sizeof(state_data.error_str), CAR_ERROR_STR(retval));
+            next_state = ERROR_STATE;
+            return;
+        }
 #endif
         // Spawn device threads
         spawn_device_threads();

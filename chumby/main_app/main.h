@@ -7,10 +7,12 @@
  *  all robomagellan control modules.
  */
 #define USE_SONAR
-//#define USE_COMPASS
+#define USE_COMPASS
 //#define USE_GPS
 //#define USE_CAMERA
 //#define USE_CAR
+
+#define OBJECT_DETECT_THRESH 1 //meters
 
 struct {
     char current_state_str [32]; // Current state string

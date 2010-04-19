@@ -9,12 +9,14 @@
 #include "compass.h"
 #include "camera.h"
 #include "gps.h"
+#include "car.h"
 #include "console.h"
 
 void * gps_thread(void * ptr);
 void * compass_thread(void * ptr);
 void * sonar_thread(void * ptr);
 void * camera_thread(void * ptr);
+void * car_thread(void * ptr);
 void * debug_thread(void * ptr);
 
 static char * debug_output = 
@@ -34,7 +36,7 @@ static char * debug_output =
         "           turn: \n";
 
 void spawn_device_threads() {
-    pthread_t gps_t, compass_t, sonar_t, camera_t;
+    pthread_t gps_t, compass_t, sonar_t, camera_t, car_t;
 
 #ifdef USE_GPS
     pthread_create(&gps_t, NULL, gps_thread, NULL);
@@ -47,6 +49,9 @@ void spawn_device_threads() {
 #endif
 #ifdef USE_CAMERA
     pthread_create(&camera_t, NULL, camera_thread, NULL);
+#endif
+#ifdef USE_CAR
+    pthread_create(&car_t, NULL, car_thread, NULL);
 #endif
 }
 
@@ -113,6 +118,16 @@ void * camera_thread(void * ptr) {
             snprintf(state_data.error_str, sizeof(state_data.error_str), CAMERA_ERROR_STR(retval));
         else
             state_data.cone_position = retval;
+    }
+    return ret_ptr;
+}
+
+void * car_thread(void * ptr) {
+    void * ret_ptr = NULL;
+    while(1) {
+        state_data.speed = car_get_speed();
+        state_data.turn = car_get_turn();
+        sleep(2);
     }
     return ret_ptr;
 }

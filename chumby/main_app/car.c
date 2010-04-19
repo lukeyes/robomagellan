@@ -25,9 +25,9 @@ static int turn;
 int init_car() {
     if(pwm_init() < 0) // configure pwm pins
         return CAR_PWM_INIT_FAIL;
-    if(pwm_drive(PWM_IDLE_CENTER) < 0) // make sure wheels are not spinning
+    if(pwm_drive(PWM_IDLE_MAX) < 0) // make sure wheels are not spinning
         return CAR_PWM_DRIVE_ERR;
-    if(pwm_turn(PWM_IDLE_CENTER) < 0) // center the wheels
+    if(pwm_turn(PWM_CENTER) < 0) // center the wheels
         return CAR_PWM_TURN_ERR;
         
     return CAR_NO_ERROR;
@@ -47,7 +47,7 @@ int car_set_speed(int percent) {
         retval = pwm_drive(PWM_IDLE_MAX + -1 * ((PWM_IDLE_MAX - PWM_MAX_REVERSE_SPEED) * percent / 100));
     // Stop car
     } else if (!percent) {
-        retval = pwm_drive(PWM_IDLE_CENTER);
+        retval = (speed < 0) ?  (pwm_drive(PWM_IDLE_MIN)) : (pwm_drive(PWM_IDLE_MAX));
     }
 
     if(retval < 0)
@@ -72,7 +72,7 @@ int car_set_turn(int percent) {
         retval = pwm_turn(PWM_IDLE_MAX + -1 * ((PWM_MAX_LEFT_TURN-PWM_IDLE_MAX) * percent / 100));
     // Turn center
     } else if (!percent) {
-        retval = pwm_turn(PWM_IDLE_CENTER);
+        retval = pwm_turn(PWM_CENTER);
     }
 
     if(retval < 0)
