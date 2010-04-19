@@ -57,14 +57,12 @@ double compass_get_heading()
     //Disregard data until $C is found
     while( found != 1)
     {
-        while (!(num_bytes = read(tty, buf, 64))) {
+		while (read(tty, buf, 64) <= 0)
+		{
             usleep(5000);
             if(retries++ > 50)
                 return COMPASS_DATA_TIMEOUT;
         }
-
-        if(num_bytes < 0)
-            return COMPASS_READ_FAIL;
 
         if(buf[0] == '$')
         {
@@ -88,12 +86,12 @@ double compass_get_heading()
 #if 0
 main()
 {
-    int x = 0;
+    double x = 0;
     compass_init();
     while (1)
     {
         x = compass_get_heading();
-    printf("value: %d\n",x);
+    	printf("value: %f\n",x);
     }
 }
 #endif
