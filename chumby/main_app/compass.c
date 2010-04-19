@@ -52,7 +52,6 @@ double compass_get_heading()
     int count = 0;
     double value = 0;
     int retries = 0;
-    int num_bytes=0;
     
     //Disregard data until $C is found
     while( found != 1)

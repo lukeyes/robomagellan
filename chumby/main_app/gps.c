@@ -30,7 +30,8 @@ int gps_init()
 {
   struct termios gps_term;
 
-  tty = open("/dev/gps", O_RDWR | O_NOCTTY);
+  //tty = open("/dev/gps", O_RDWR | O_NOCTTY);
+  tty = open("/dev/tty.PL2303-0000201A", O_RDWR | O_NOCTTY);
   tcgetattr(tty, &gps_term);
   cfmakeraw(&gps_term);
   cfsetspeed(&gps_term, B4800);
@@ -41,6 +42,7 @@ int gps_init()
   gps_term.c_cc[VMIN] = 0; 
   tcsetattr(tty,TCSAFLUSH,&gps_term);
 
+  fprintf(stderr,"tty opened:%d\n",tty);
   return tty;
 }
 
@@ -51,6 +53,7 @@ double convert_nmea_ll(char * lat)
 
     int count;
     int dot = 0;
+	double a = 1;
 
     while (lat[dot] != '.')
     {
@@ -63,41 +66,53 @@ double convert_nmea_ll(char * lat)
         degrees += lat[count] - '0';
     }
 
-    minutes = (10 * lat[dot - 2]) + lat[dot - 1];
-    minutes += (.1 * lat[dot + 1]) + (.01 * lat[dot+2]);
+    minutes = (10 * (lat[dot - 2] - '0')) + (lat[dot - 1] - '0');
+	for (count = dot + 1; lat[count] <= '9' && lat[count] >= '0'; count++)
+	{
+		a *= 0.1;
+		minutes += (lat[count] - '0') * a;
+	}
 
-    return degrees + (minutes / 60);
+    return (degrees + (minutes / 60)) * ((lat[count+1] == 'W' || lat[count+1] == 'S') ? -1 : 1);
 }
 
 //Read GPS coordinates and return lat and long - data is in NMEA 0183 format
-void gps_get_position(struct Location* position)
+int gps_get_position(struct Location* position)
 {
     unsigned char buf[64]; //Fill up with each line
     unsigned char latitude[11];
     unsigned char longitude[12];
-    int count = 0;
     int found = 0;
+	int retries = 0;
+	int messages = 0;
     
     //Disregard data until $GPRMC is found and is valid
     while( found != 1)
     {
-        read(tty, &buf[0], 64);
+		while (read(tty, &buf[0], 64) <= 0)
+		{
+			fprintf(stderr,"Waiting on successful read, retries: %d\n",retries);
+			usleep(5000);
+			if(retries++ > 50)
+				return 0;
+		}
+
+		fprintf(stderr,"%d messages processed, found: %d\n",messages,found);
         if(strncmp((char *)buf, "$GPRMC", 6) == 0)
         {
             //Read in GPS data and get lat and long
             found = 1;
-            for(count = 0;count < 37;count++)
-            {
-                read(tty,&buf[count], 1);
-            }
-            if(buf[12] == 'V');
+            if(buf[18] == 'V');
                 found = 0;
-            memcpy(latitude, &buf[14],11);
-            memcpy(longitude,&buf[26],12);
+            memcpy(latitude, &buf[20],11);
+            memcpy(longitude,&buf[32],12);
         }
+		messages++;
     }
     position->latitude = convert_nmea_ll((char *)latitude);
     position->longitude = convert_nmea_ll((char *)longitude);
+
+	return 1;
 }
 
 double calc_target_distance(struct Location* pos, struct Location* dest)
@@ -133,7 +148,7 @@ double calc_target_heading(struct Location* pos, struct Location* dest)
     return bearing;
 }
 
-#if 0
+#if 1
 main()
 {
         struct Location pos, dest;
@@ -142,6 +157,8 @@ main()
 
         while (1)
         {
+			if (gps_get_position(&pos) < 1)
+				printf("Error reading.\n");
             gps_get_position(&pos);
             printf("From %f,%f to %f,%f: %f  at heading %f\n",pos.latitude,pos.longitude,dest.latitude,dest.longitude,calc_target_distance(&pos,&dest),calc_target_heading(&pos,&dest));
         }
