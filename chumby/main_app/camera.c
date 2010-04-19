@@ -26,27 +26,21 @@ static int tty=0;
 int camera_init()
 {
     struct termios camera_term;
-
+    
+	// Initialize serial to camera
+	int tty = open("/dev/cam", O_RDWR | O_NOCTTY | O_NONBLOCK);
+   	//tcgetattr(tty, &camera_term);
+	cfmakeraw(&camera_term);
+  	camera_term.c_cflag |= B115200;
+   	camera_term.c_cflag |= CS8 | CREAD | CLOCAL;
+   	camera_term.c_iflag |= IGNPAR | IGNBRK;
+	tcsetattr(tty,TCSAFLUSH,&camera_term);
+	usleep(50000);
+	return tty;
+	
     // If a reinit occurs
     if(tty)
         close(tty);
-
-    // Initialize serial to camera
-    tty = open("/dev/cam", O_RDWR | O_NOCTTY | O_NONBLOCK);
-
-    if(tty < 0)
-        return CAMERA_OPEN_FAIL;
-    
-    fprintf(stderr,"camera tty: %d\n", tty);
-
-    //tcgetattr(tty, &camera_term);
-    cfmakeraw(&camera_term);
-    camera_term.c_cflag = B115200;
-    //camera_term.c_cflag = CS8 | CREAD | CLOCAL;
-    //camera_term.c_iflag = IGNPAR | IGNBRK;
-    tcsetattr(tty,TCSAFLUSH,&camera_term);
-    usleep(50000);
-    return CAMERA_NO_ERROR;
 }
 
 //Start tracking - turn on camera, pass correct parameters, and start spitting out tracking packets
