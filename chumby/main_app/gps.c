@@ -153,6 +153,30 @@ double calc_target_heading(struct Location* pos, struct Location* dest)
 	return bearing;
 }
 
+double get_relative_heading(double compass, double target)
+{
+	double result = target - compass;
+	if (result < -180)
+		result += 360;
+	if (result > 180)
+		result -= 360;
+	return result;
+}
+
+#if 0
+main()
+{
+	double compass, target;
+	for (compass = 0; compass < 360; compass += 30)
+	{
+		for (target = 0; target < 360; target+= 30)
+		{
+			printf("Aiming at %f, to get to %f, turn at %f.\n",compass,target,get_relative_heading(compass,target));
+		}
+	}
+}
+#endif
+
 #if 0
 main()
 {
