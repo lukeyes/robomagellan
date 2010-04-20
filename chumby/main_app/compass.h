@@ -9,7 +9,7 @@ enum {
 
 
 #define COMPASS_ERROR_STR(__err)  compass_err_msgs[-1*__err]
-// This is defined in sonar.c
+// This is defined in compass.c
 extern const char * compass_err_msgs[NUM_COMPASS_ERRORS];
 
 int compass_init();

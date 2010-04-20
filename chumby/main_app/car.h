@@ -8,6 +8,7 @@ enum {
 } CAR_ERROR_CODES;
 
 #define CAR_ERROR_STR(__err)  car_err_msgs[-1*__err]
+// This is defined in car.c
 extern const char * car_err_msgs[NUM_CAR_ERRORS];
 
 int init_car();

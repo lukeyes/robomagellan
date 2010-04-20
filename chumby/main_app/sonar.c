@@ -40,7 +40,7 @@ int sonar_init()
     int retries=0;
 
     // If a reinit occurs
-    if(tty)
+    if(tty > 0)
         close(tty);
 
     tty = initialize_i2c(); // This should be removed if other non-sonar devices on I2C Bus

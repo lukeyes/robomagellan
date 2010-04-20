@@ -6,14 +6,27 @@
 #include "navigation_state.h"
 
 void navigation_state() {
-    car_set_speed(navigation_speed);
-    car_set_turn(0);
+    double rel_heading;
+    if(car_initialized) {
+        car_set_speed(navigation_speed);
+        car_set_turn(0);
+    }
     while(1) {
         usleep(1000);
         // Is there an object on the path?
-        if(state_data.front_sonar < OBJECT_DETECT_THRESH) {
+        if((state_data.front_sonar < OBJECT_DETECT_THRESH) && sonar_initialized) {
             next_state = OBJECT_AVOIDANCE_STATE;
             return;
         }
+    
+#if 0
+        rel_heading = get_relative_heading(state_data.compass_heading, state_data.target_heading);
+        if(rel_heading < 0) {
+            //Turn left
+            car_set_turn(rel_heading);
+        } else {
+            //Turn right
+        }
+#endif
     }
 }

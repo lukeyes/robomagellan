@@ -22,7 +22,7 @@ int compass_init()
   struct termios compass_term;
 
     // If a reinit occurs
-  if(tty)
+  if(tty > 0)
     close(tty);
 
   tty = open("/dev/compass", O_RDWR | O_NOCTTY | O_NONBLOCK);

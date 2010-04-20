@@ -9,7 +9,7 @@
 #define USE_SONAR
 #define USE_COMPASS
 //#define USE_GPS
-//#define USE_CAMERA
+#define USE_CAMERA
 //#define USE_CAR
 
 #define OBJECT_DETECT_THRESH 1 //meters
@@ -47,3 +47,8 @@ extern const char * state_strings[NUM_STATES];
 
 int next_state;
 int debug;
+int sonar_initialized;
+int gps_initialized;
+int compass_initialized;
+int car_initialized;
+int camera_initialized;

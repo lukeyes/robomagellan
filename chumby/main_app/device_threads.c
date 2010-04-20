@@ -62,8 +62,11 @@ void spawn_debug_thread () {
 
 void * gps_thread(void * ptr) {
     void * ret_ptr = NULL;
+    int retval;
     while (1) {
-        sleep(1);
+        retval = gps_get_position((struct Location *)&state_data.current_lat);
+        if(retval < 0)
+            snprintf(state_data.error_str, sizeof(state_data.error_str), GPS_ERROR_STR((int)retval));
     }
     return ret_ptr;
 }
@@ -76,7 +79,7 @@ void * compass_thread(void * ptr) {
         if(retval < 0)
             snprintf(state_data.error_str, sizeof(state_data.error_str), COMPASS_ERROR_STR((int)retval));
         else
-            state_data.compass_heading = compass_get_heading();
+            state_data.compass_heading = retval;
     }
     return ret_ptr;
 }
@@ -112,8 +115,6 @@ void * camera_thread(void * ptr) {
     int retval;
     while (1) {
         retval = camera_cone_position();
-        fprintf(stderr,"camera_cone_position returned: %s\n", CAMERA_ERROR_STR(retval));
-        //sleep(2);
         if(retval < 0)
             snprintf(state_data.error_str, sizeof(state_data.error_str), CAMERA_ERROR_STR(retval));
         else
@@ -127,7 +128,7 @@ void * car_thread(void * ptr) {
     while(1) {
         state_data.speed = car_get_speed();
         state_data.turn = car_get_turn();
-        sleep(2);
+        usleep(500000);
     }
     return ret_ptr;
 }
@@ -144,29 +145,29 @@ void * debug_thread(void * ptr) {
         console_gotoxy(18, 2);
         fprintf(stderr,"%-32s", state_data.error_str);
         console_gotoxy(18, 3);
-        fprintf(stderr,"%6.2fm", state_data.front_sonar);
+        fprintf(stderr,"%9.2fm", state_data.front_sonar);
         console_gotoxy(18, 4);
-        fprintf(stderr,"%6.2fm", state_data.right_sonar);
+        fprintf(stderr,"%9.2fm", state_data.right_sonar);
         console_gotoxy(18, 5);
-        fprintf(stderr,"%6.2fº", state_data.current_lat);
+        fprintf(stderr,"%9.4fº", state_data.current_lat);
         console_gotoxy(18, 6);
-        fprintf(stderr,"%6.2fº", state_data.current_long);
+        fprintf(stderr,"%9.4fº", state_data.current_long);
         console_gotoxy(18, 7);
-        fprintf(stderr,"%6.2fº", state_data.target_lat);
+        fprintf(stderr,"%9.2fº", state_data.target_lat);
         console_gotoxy(18, 8);
-        fprintf(stderr,"%6.2fº", state_data.target_long);
+        fprintf(stderr,"%9.2fº", state_data.target_long);
         console_gotoxy(18, 9);
-        fprintf(stderr,"%6.2fº", state_data.compass_heading);
+        fprintf(stderr,"%9.1fº", state_data.compass_heading);
         console_gotoxy(18, 10);
-        fprintf(stderr,"%6.2fº", state_data.target_heading);
+        fprintf(stderr,"%9.2fº", state_data.target_heading);
         console_gotoxy(18, 11);
-        fprintf(stderr,"%6.2fm", state_data.target_distance);
+        fprintf(stderr,"%9.2fm", state_data.target_distance);
         console_gotoxy(18, 12);
-        fprintf(stderr,"%6dº", state_data.cone_position);
+        fprintf(stderr,"%9d", state_data.cone_position);
         console_gotoxy(18, 13);
-        fprintf(stderr,"%6d%%", state_data.speed);
+        fprintf(stderr,"%9d%%", state_data.speed);
         console_gotoxy(18, 14);
-        fprintf(stderr,"%6d%%", state_data.turn);
+        fprintf(stderr,"%9d%%", state_data.turn);
         console_gotoxy(0, 17);
         usleep(200000);
     }

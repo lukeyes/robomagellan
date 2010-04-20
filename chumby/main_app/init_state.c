@@ -20,6 +20,16 @@ void init_state() {
     if(first) {
         if(debug)
             spawn_debug_thread();
+#ifdef USE_GPS
+        // initialize gps 
+        retval = gps_init();
+        if(retval != GPS_NO_ERROR) {
+            snprintf(state_data.error_str, sizeof(state_data.error_str), GPS_ERROR_STR(retval));
+            next_state = ERROR_STATE;
+            return;
+        }
+       gps_initialized = 1;
+#endif
 
 #ifdef USE_SONAR
         // initialize sonar sensors
@@ -29,6 +39,7 @@ void init_state() {
             next_state = ERROR_STATE;
             return;
         }
+       sonar_initialized = 1;
 #endif
 
 #ifdef USE_COMPASS
@@ -39,6 +50,7 @@ void init_state() {
             next_state = ERROR_STATE;
             return;
         }
+        compass_initialized = 1;
 #endif
 
 #ifdef USE_CAMERA
@@ -49,14 +61,13 @@ void init_state() {
             next_state = ERROR_STATE;
             return;
         }
-        fprintf(stderr,"camera_init returned: %s\n", CAMERA_ERROR_STR(retval));
         retval = camera_start_tracking();
         if(retval != CAMERA_NO_ERROR) {
             snprintf(state_data.error_str, sizeof(state_data.error_str), CAMERA_ERROR_STR(retval));
             next_state = ERROR_STATE;
             return;
         }
-        fprintf(stderr,"camera_start_tracking returned: %s\n", CAMERA_ERROR_STR(retval));
+        camera_initialized = 1;
 #endif
 #ifdef USE_CAR
         retval = init_car();
@@ -65,6 +76,7 @@ void init_state() {
             next_state = ERROR_STATE;
             return;
         }
+        car_initialized = 1;
 #endif
         // Spawn device threads
         spawn_device_threads();
