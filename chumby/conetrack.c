@@ -65,7 +65,9 @@ int main()
 	start_tracking(camera_tty);
 	fprintf(stderr,"Camera initialized\n");
 	while(1){
-		fprintf(stderr,"Middle Pixel Location: %d",cone_position(camera_tty));
+		fprintf(stderr,"Reading...\n");
+		fprintf(stderr,"Middle Pixel Location: %d\n",cone_position(camera_tty));
+		usleep(100000);
 	}
 	close(camera_tty);
 	return 0;
