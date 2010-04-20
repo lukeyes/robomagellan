@@ -113,7 +113,7 @@ void * camera_thread(void * ptr) {
     while (1) {
         retval = camera_cone_position();
         fprintf(stderr,"camera_cone_position returned: %s\n", CAMERA_ERROR_STR(retval));
-        sleep(2);
+        //sleep(2);
         if(retval < 0)
             snprintf(state_data.error_str, sizeof(state_data.error_str), CAMERA_ERROR_STR(retval));
         else

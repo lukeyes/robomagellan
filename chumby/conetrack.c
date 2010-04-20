@@ -5,7 +5,7 @@
 #define LEFT_THRESHOLD = 65
 #define RIGHT_THRESHOLD = 95
 #define HIT_THRESHOLD = 2
-
+/*
 int cone_find(int camera_tty)
 {
 	int found = 0;
@@ -57,17 +57,16 @@ int cone_hit(int camera_tty, int sonar_tty)
 	return 0;
 }
 
-
+*/
 
 int main()
 {
-	//Initialize
 	int camera_tty = initialize_camera();
-	int track = 0;
-	int sonar_tty = initialize_sonar();
+	start_tracking(camera_tty);
 	fprintf(stderr,"Camera initialized\n");
-	cone_find(camera_tty);
-	cone_hit(camera_tty,sonar_tty);
+	while(1){
+		fprintf(stderr,"Middle Pixel Location: %d",cone_position(camera_tty));
+	}
 	close(camera_tty);
 	return 0;
 }

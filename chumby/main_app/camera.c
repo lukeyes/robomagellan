@@ -97,7 +97,7 @@ int camera_start_tracking()
     return CAMERA_NO_ERROR;
 }
 
-//Reset to default values, turn off camera, and sleep processor
+//Reset to default values, turn off camera, and sleep processor, may not work
 int camera_stop_tracking()
 {
     char reset[] = "rs\r";
@@ -140,7 +140,6 @@ int camera_stop_tracking()
 //Value between 46 and 210, 128 is the center
 //13 is ASCII return, 32 is spaces
 //0 indicates nothing found
-//Do a 3 point average
 
 int camera_cone_position()
 {
@@ -170,7 +169,7 @@ int camera_cone_position()
         {
             position = (buffer[2]-48)*100 + (buffer[3]-48) * 10 + (buffer[4]-48);
         }
-        else if(retries++ > 20)
+        else if(retries++ > 5)
         {
             return CAMERA_CONE_POS_TIMEOUT;
         }

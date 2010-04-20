@@ -16,10 +16,10 @@ int initialize_camera()
 	// Initialize serial to camera
 	int tty = open("/dev/cam", O_RDWR | O_NOCTTY | O_NONBLOCK);
    	//tcgetattr(tty, &camera_term);
-	//cfmakeraw(&camera_term);
-  	camera_term.c_cflag = B115200;
-   	//camera_term.c_cflag = CS8 | CREAD | CLOCAL;
-   	//camera_term.c_iflag = IGNPAR | IGNBRK;
+	cfmakeraw(&camera_term);
+  	camera_term.c_cflag |= B115200;
+   	camera_term.c_cflag |= CS8 | CREAD | CLOCAL;
+   	camera_term.c_iflag |= IGNPAR | IGNBRK;
 	tcsetattr(tty,TCSAFLUSH,&camera_term);
 	usleep(50000);
 	return tty;
