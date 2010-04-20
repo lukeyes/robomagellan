@@ -33,7 +33,9 @@ int cone_find(){
         	}
         	usleep(150000);	
         }
+        //Center wheels and come to a complete stop so that we have a reasonable expectation of being able to see the cone for the tracking function
         car_set_turn(0);
+        car_set_speed(0);
         return 1;  
 }
 
@@ -62,7 +64,7 @@ void cone_track(){
 				found = 1;
 			}
 		}
-		if(tries > 10)
+		if(tries >= 50)
 		{
 			tries = 0;
 			cone_find();
@@ -70,6 +72,8 @@ void cone_track(){
 	}
 }
 
+//If tracked pixel is on the left side of the camera, turn left, if it is to the right, turn right, otherwise, stay in the middle
+//Pixel range is 1 to ~159
 void cone_feedback(int pixel_location)
 {
 	int turningl = 0;
@@ -78,6 +82,7 @@ void cone_feedback(int pixel_location)
 	{
 		if (turningl == 0)
 		{
+			//Turn Left
 			car_set_turn(-TURN_RATE);
 			turningl = 1;
 		}
@@ -86,6 +91,7 @@ void cone_feedback(int pixel_location)
 	{
 		if (turningr == 0)
 		{
+			//Turn Right
 			car_set_turn(TURN_RATE);
 			turningr = 1;
 		}
