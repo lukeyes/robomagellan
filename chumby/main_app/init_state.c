@@ -82,5 +82,6 @@ void init_state() {
         spawn_device_threads();
         first = 0;
     }
-    next_state = NAVIGATION_STATE;
+ // next_state = NAVIGATION_STATE;
+    next_state = TRACK_STATE;
 }

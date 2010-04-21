@@ -134,16 +134,12 @@ int main (int argc, char **argv) {
 
 void exit_routine (int sig) {
     // Go to done state to stop car
-    done_state();
-    strcpy(state_data.current_state_str, "DONE_STATE");
 
     if (debug) {
-        // Enable comm line echo
-        system("stty echo");
-
         // Set LCD to gray 
         set_lcd_color("105,105,105");
         write_lcd("You Have Terminated Program Execution", 0, 0);
     }
-    exit(0);
+    strcpy(state_data.current_state_str, "DONE_STATE");
+    done_state();
 }

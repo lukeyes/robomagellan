@@ -66,10 +66,10 @@ int car_set_turn(int percent) {
 
     // Turn right
     if(percent > 100) {
-        retval = pwm_turn(PWM_IDLE_MIN - ((PWM_IDLE_MIN - PWM_MAX_RIGHT_TURN) * percent / 100));
+        retval = pwm_turn(PWM_CENTER - ((PWM_CENTER - PWM_MAX_RIGHT_TURN) * percent / 100));
     // Turn left
     } else if(percent < 100) {
-        retval = pwm_turn(PWM_IDLE_MAX + -1 * ((PWM_MAX_LEFT_TURN-PWM_IDLE_MAX) * percent / 100));
+        retval = pwm_turn(PWM_CENTER + -1 * ((PWM_MAX_LEFT_TURN-PWM_CENTER) * percent / 100));
     // Turn center
     } else if (!percent) {
         retval = pwm_turn(PWM_CENTER);

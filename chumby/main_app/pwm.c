@@ -2,7 +2,7 @@
  * Author:  Michael Ortiz
  * Email:   mtortiz.mail@gmail.com
  * 
- * Desc:    Functions for car pwm signal control
+ * Desc:    Functions for car pwm signal control. Includes a tuning driver.
  */
 
 #include <stdlib.h>
@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <signal.h>
 #include "pwm.h"
 
 static int *mem = 0;
@@ -146,3 +147,29 @@ int pwm_drive(int value)
 
     return 0;
 }
+#if 0
+void exit_routine (int sig) {
+    pwm_drive(PWM_IDLE_MAX);
+    exit(0);
+}
+
+int main (void) {
+    unsigned int speed;
+    unsigned int turn;
+
+    // Enable Control-C detection
+    signal(SIGINT, exit_routine);
+
+    pwm_init();
+    fprintf(stderr,"speed(hex): ");
+    fscanf(stdin,"%x", &speed);
+    fprintf(stderr,"turn(hex): ");
+    fscanf(stdin,"%x", &turn);
+    pwm_drive(speed);
+    pwm_turn(turn);
+    while(1) {
+        sleep(1);
+    }
+    return 0;
+}
+#endif
