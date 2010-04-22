@@ -146,3 +146,7 @@ int camera_cone_position()
 
     return position;
 }
+
+void camera_close() {
+    close(tty);
+}

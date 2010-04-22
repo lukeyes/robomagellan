@@ -67,6 +67,10 @@ void * gps_thread(void * ptr) {
         retval = gps_get_position((struct Location *)&state_data.current_lat);
         if(retval < 0)
             snprintf(state_data.error_str, sizeof(state_data.error_str), GPS_ERROR_STR((int)retval));
+        state_data.target_heading = calc_target_heading((struct Location *)&state_data.current_lat, 
+                                                        (struct Location *)&state_data.target_lat );
+        state_data.target_distance = calc_target_distance((struct Location *)&state_data.current_lat, 
+                                                          (struct Location *)&state_data.target_lat );
     }
     return ret_ptr;
 }

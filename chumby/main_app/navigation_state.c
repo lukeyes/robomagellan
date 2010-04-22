@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include "main.h"
 #include "car.h"
+#include "gps.h"
 #include "navigation_state.h"
 
 void navigation_state() {
@@ -13,20 +14,17 @@ void navigation_state() {
     }
     while(1) {
         usleep(1000);
+#if 1
         // Is there an object on the path?
         if((state_data.front_sonar < OBJECT_DETECT_THRESH) && sonar_initialized) {
             next_state = OBJECT_AVOIDANCE_STATE;
             return;
         }
+#endif
     
-#if 0
+#if 1
         rel_heading = get_relative_heading(state_data.compass_heading, state_data.target_heading);
-        if(rel_heading < 0) {
-            //Turn left
-            car_set_turn(rel_heading);
-        } else {
-            //Turn right
-        }
+        car_set_turn(rel_heading * 100 / 180);
 #endif
     }
 }

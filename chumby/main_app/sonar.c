@@ -147,3 +147,7 @@ double sonar_get_front()
     meters = inches / 39.37;
     return meters;
 }
+
+void sonar_close() {
+    close(tty);
+}

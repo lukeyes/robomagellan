@@ -27,7 +27,7 @@ void track_state() {
                 return;
             } else {
                 turn = last_cone_pos - 79;
-                turn /= 1.2;
+                turn /= 1.1;
                 car_set_turn(turn);
             }
         } else {

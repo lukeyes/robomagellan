@@ -176,6 +176,9 @@ double get_relative_heading(double compass, double target)
     return result;
 }
 
+void gps_close() {
+    close(tty);
+}
 #if 0
 main()
 {

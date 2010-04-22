@@ -6,7 +6,7 @@
 #include "object_avoidance_state.h"
 
 void object_avoidance_state() {
-    double last_heading = state_data.compass_heading;
+    double last_target_heading = state_data.target_heading;
     car_set_speed(object_avoidance_speed);
 
     while(state_data.front_sonar < OBJECT_DETECT_THRESH ||

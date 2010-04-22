@@ -78,10 +78,15 @@ void init_state() {
         }
         car_initialized = 1;
 #endif
+        //TODO: get these values from a file
+        //set test target coordinates
+        state_data.target_lat = 32.881136091348665;
+        state_data.target_long = -117.23563715815544;
+
         // Spawn device threads
         spawn_device_threads();
         first = 0;
     }
- // next_state = NAVIGATION_STATE;
-    next_state = TRACK_STATE;
+    next_state = NAVIGATION_STATE;
+    //next_state = TRACK_STATE;
 }

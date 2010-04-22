@@ -17,3 +17,4 @@ int camera_init();
 int camera_start_tracking();
 int camera_stop_tracking();
 int camera_cone_position();
+void camera_close();

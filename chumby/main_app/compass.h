@@ -14,3 +14,4 @@ extern const char * compass_err_msgs[NUM_COMPASS_ERRORS];
 
 int compass_init();
 double compass_get_heading();
+void compass_close();

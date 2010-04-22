@@ -82,6 +82,9 @@ double compass_get_heading()
     return (value < 360.0 && value >= 0) ? value : COMPASS_DATA_CORRUPT;
 }
 
+void compass_close() {
+    close(tty);
+}
 #if 0
 main()
 {

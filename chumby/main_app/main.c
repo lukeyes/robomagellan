@@ -43,8 +43,8 @@ int main (int argc, char **argv) {
     signal(SIGINT, exit_routine);
 
     
-    navigation_speed = 72;
-    object_avoidance_speed = 60;
+    navigation_speed = 4;
+    object_avoidance_speed = 3;
 
     while ((c = getopt(argc, argv, "ds:")) != 255) {
         switch(c) {
@@ -115,6 +115,7 @@ int main (int argc, char **argv) {
                     write_lcd("DONE_STATE", 0, 0);
                 }
                 done_state();
+                exit(0);
                 break;
             case ERROR_STATE:
                 if (debug) {
@@ -142,4 +143,5 @@ void exit_routine (int sig) {
     }
     strcpy(state_data.current_state_str, "DONE_STATE");
     done_state();
+    exit(0);
 }

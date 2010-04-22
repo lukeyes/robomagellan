@@ -16,3 +16,4 @@ int sonar_init();
 int sonar_take_range();
 double sonar_get_right();
 double sonar_get_front();
+void sonar_close();
