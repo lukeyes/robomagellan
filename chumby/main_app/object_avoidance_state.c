@@ -12,6 +12,11 @@ void object_avoidance_state() {
     while(state_data.front_sonar < OBJECT_DETECT_THRESH ||
           state_data.right_sonar <  OBJECT_DETECT_THRESH) {
 
+        if(kill_switch_asserted) {
+            next_state = PAUSE_STATE;
+            return;
+        }
+
         if(state_data.front_sonar < OBJECT_DETECT_THRESH) {
             if(state_data.front_sonar > 2) //do 20% turn
                 car_set_turn(-20);

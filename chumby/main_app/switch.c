@@ -16,8 +16,6 @@ static int tty;
 
 int switch_init()
 {
-    struct termios switch_term;
-
     tty = open("/dev/switch", O_RDONLY);
     if (!tty)
       return SWITCH_OPEN_TTY_FAIL;
@@ -32,10 +30,14 @@ int switch_get_state()
     read(tty, &x,1);
     return x & 1;
 }
+void switch_close() {
+    close(tty);
+}
 
+#if 0
 main()
 {
-	int x = 0;
+    int x = 0;
     switch_init();
     while (1)
     {
@@ -43,3 +45,4 @@ main()
         printf("value: %d\n",x);
     }
 }
+#endif

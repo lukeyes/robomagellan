@@ -6,11 +6,13 @@
  *  This file contains sensory data and state machine info that is global
  *  all robomagellan control modules.
  */
+
+#define USE_KILL_SWITCH
 #define USE_SONAR
 #define USE_COMPASS
 #define USE_GPS
 //#define USE_CAMERA
-#define USE_CAR
+//#define USE_CAR
 
 #define OBJECT_DETECT_THRESH 2 //meters
 
@@ -38,6 +40,7 @@ enum {
     TRACK_STATE,
     DONE_STATE,
     ERROR_STATE,
+    PAUSE_STATE,
     NUM_STATES
 } STATES;
 
@@ -45,8 +48,11 @@ enum {
 // This is defined in main.c
 extern const char * state_strings[NUM_STATES];
 
+int kill_switch_asserted;
 int next_state;
+int prev_state;
 int debug;
+int kill_switch_initialized;
 int sonar_initialized;
 int gps_initialized;
 int compass_initialized;

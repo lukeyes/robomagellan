@@ -13,6 +13,10 @@ void navigation_state() {
         car_set_turn(0);
     }
     while(1) {
+        if(kill_switch_asserted) {
+            next_state = PAUSE_STATE;
+            return;
+        }
         usleep(1000);
 #if 1
         // Is there an object on the path?

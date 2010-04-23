@@ -17,6 +17,11 @@ void track_state() {
     cone_track();
 #endif
     while (1) {
+        if(kill_switch_asserted) {
+            next_state = PAUSE_STATE;
+            return;
+        }
+
         usleep(1000);
 
         car_set_speed(4);

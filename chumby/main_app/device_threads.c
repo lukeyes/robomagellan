@@ -11,6 +11,7 @@
 #include "gps.h"
 #include "car.h"
 #include "console.h"
+#include "switch.h"
 
 void * gps_thread(void * ptr);
 void * compass_thread(void * ptr);
@@ -18,6 +19,7 @@ void * sonar_thread(void * ptr);
 void * camera_thread(void * ptr);
 void * car_thread(void * ptr);
 void * debug_thread(void * ptr);
+void * switch_thread(void * ptr);
 
 static char * debug_output = 
         "  current state: \n"
@@ -36,7 +38,11 @@ static char * debug_output =
         "           turn: \n";
 
 void spawn_device_threads() {
-    pthread_t gps_t, compass_t, sonar_t, camera_t, car_t;
+    pthread_t switch_t, gps_t, compass_t, sonar_t, camera_t, car_t;
+
+#ifdef USE_KILL_SWITCH
+    pthread_create(&switch_t, NULL, switch_thread, NULL);
+#endif
 
 #ifdef USE_GPS
     pthread_create(&gps_t, NULL, gps_thread, NULL);
@@ -137,6 +143,19 @@ void * car_thread(void * ptr) {
     return ret_ptr;
 }
 
+void * switch_thread(void * ptr) {
+    void * ret_ptr = NULL;
+    while(1) {
+        if (!switch_get_state()) {
+            kill_switch_asserted = 1;
+        } else {
+            kill_switch_asserted = 0;
+        }
+        usleep(500000);
+    }
+    return ret_ptr;
+}
+
 void * debug_thread(void * ptr) {
     void * ret_ptr = NULL;
     // Initialize debug display 
@@ -153,19 +172,19 @@ void * debug_thread(void * ptr) {
         console_gotoxy(18, 4);
         fprintf(stderr,"%9.2fm", state_data.right_sonar);
         console_gotoxy(18, 5);
-        fprintf(stderr,"%9.4fº", state_data.current_lat);
+        fprintf(stderr,"%11.6fº", state_data.current_lat);
         console_gotoxy(18, 6);
-        fprintf(stderr,"%9.4fº", state_data.current_long);
+        fprintf(stderr,"%11.6fº", state_data.current_long);
         console_gotoxy(18, 7);
-        fprintf(stderr,"%9.2fº", state_data.target_lat);
+        fprintf(stderr,"%11.6fº", state_data.target_lat);
         console_gotoxy(18, 8);
-        fprintf(stderr,"%9.2fº", state_data.target_long);
+        fprintf(stderr,"%11.6fº", state_data.target_long);
         console_gotoxy(18, 9);
         fprintf(stderr,"%9.1fº", state_data.compass_heading);
         console_gotoxy(18, 10);
-        fprintf(stderr,"%9.2fº", state_data.target_heading);
+        fprintf(stderr,"%9.1fº", state_data.target_heading);
         console_gotoxy(18, 11);
-        fprintf(stderr,"%9.2fm", state_data.target_distance);
+        fprintf(stderr,"%9.1fm", state_data.target_distance);
         console_gotoxy(18, 12);
         fprintf(stderr,"%9d", state_data.cone_position);
         console_gotoxy(18, 13);

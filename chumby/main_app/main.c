@@ -14,6 +14,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include "main.h"
+#include "pause_state.h"
 #include "done_state.h"
 #include "track_state.h"
 #include "object_avoidance_state.h"
@@ -22,6 +23,16 @@
 #include "console.h"
 #include "lcd.h"
 
+const char * USAGE = 
+    "main_app [options [args]]\n"
+    "options:\n"
+    "\t-h -- this message\n"
+    "\t-d -- debug output\n"
+    "\t-s navigation_speed,object_avoidance_speed,"
+    "search_speed,track_speed -- sets each speed respectively\n";
+
+void exit_routine (int sig);
+
 // Must line up w/ STATES in main.h
 const char * state_strings[NUM_STATES] = {
     "INIT_STATE",
@@ -29,29 +40,40 @@ const char * state_strings[NUM_STATES] = {
     "OBJECT_AVOIDANCE_STATE",
     "TRACK_STATE",
     "DONE_STATE",
-    "ERROR_STATE"
+    "ERROR_STATE",
+    "PAUSE_STATE"
 };
-
-void exit_routine (int sig);
 
 int main (int argc, char **argv) {
     int current_state;
     char c;
     debug = 0;
+#ifdef USE_KILL_SWITCH
+    kill_switch_asserted = 1;
+#endif
 
     // Enable Control-C detection
     signal(SIGINT, exit_routine);
 
     
-    navigation_speed = 4;
-    object_avoidance_speed = 3;
+    navigation_speed = 10;
+    object_avoidance_speed = 7;
+    search_speed = 10;
+    track_speed = 7;
 
     while ((c = getopt(argc, argv, "ds:")) != 255) {
         switch(c) {
+            case 'h':
+                fprintf(stderr, USAGE);
+                exit(0);
             case 's':
                 if(!optarg)
                     exit(0);
-                sscanf(optarg, "%d,%d", &navigation_speed, &object_avoidance_speed);
+                if(sscanf(optarg, "%d,%d,%d,%d", &navigation_speed, 
+                       &object_avoidance_speed, &search_speed, &track_speed) != 4) {
+                    fprintf(stderr,"Insufficient or incorrect args\n");
+                    fprintf(stderr, USAGE);
+                }
                 break;
             case 'd':
                 debug = 1;
@@ -62,17 +84,14 @@ int main (int argc, char **argv) {
         }
     }
 
-    if(debug)
-        //Disable comm line echo
-        system("stty -echo");
-        
     // Begin with init state
-    next_state = INIT_STATE;
+    current_state = next_state = INIT_STATE;
 
     // Initially no errors
     snprintf(state_data.error_str, sizeof(state_data.error_str), "NO_ERROR");
 
     while (1) {
+        prev_state = current_state;
         current_state = next_state;
         strcpy(state_data.current_state_str, STATE_STR(current_state));
         switch (current_state) {
@@ -116,6 +135,14 @@ int main (int argc, char **argv) {
                 }
                 done_state();
                 exit(0);
+                break;
+            case PAUSE_STATE:
+                if(debug) {
+                    // Set LCD to black 
+                    set_lcd_color("0,0,0");
+                    write_lcd("PAUSE_STATE", 0, 0);
+                }
+                pause_state();
                 break;
             case ERROR_STATE:
                 if (debug) {

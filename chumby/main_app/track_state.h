@@ -5,4 +5,7 @@
 #define TRACK_SPEED 4
 #define DETECT_THRESHOLD .02
 
+int search_speed;
+int track_speed;
+
 void track_state();

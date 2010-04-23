@@ -1,5 +1,5 @@
 #define PWM_MAX_RIGHT_TURN      0x0B9A
-#define PWM_MAX_FORWARD_SPEED   0x1224
+#define PWM_MAX_FORWARD_SPEED   0x11F0
 //#define PWM_CENTER          0x119B
 //
 #define PWM_CENTER_MIN          0x11DB

@@ -25,8 +25,8 @@ int compass_init()
   if(tty > 0)
     close(tty);
 
-  tty = open("/dev/compass", O_RDWR | O_NOCTTY | O_NONBLOCK);
   system("stty -F /dev/compass 19200");
+  tty = open("/dev/compass", O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (tty < 0)
     return COMPASS_OPEN_FAIL;
   tcgetattr(tty, &compass_term);

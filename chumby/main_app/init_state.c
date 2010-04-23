@@ -12,14 +12,32 @@
 #include "camera.h"
 #include "gps.h"
 #include "car.h"
+#include "switch.h"
 
 void init_state() {
     static int first = 1;
     int retval;
 
     if(first) {
+        
+        // Read in target coordinates
+        fscanf(stdin, "target_lat =%lf\ntarget_long = %lf", &state_data.target_lat, &state_data.target_long);
+
         if(debug)
             spawn_debug_thread();
+
+
+#ifdef USE_KILL_SWITCH
+        //initialize kill switch
+        retval = switch_init();
+        if(retval != SWITCH_NO_ERROR) {
+            snprintf(state_data.error_str, sizeof(state_data.error_str), SWITCH_ERROR_STR(retval));
+            next_state = ERROR_STATE;
+            return;
+        }
+       kill_switch_initialized = 1;
+#endif
+
 #ifdef USE_GPS
         // initialize gps 
         retval = gps_init();
@@ -78,15 +96,17 @@ void init_state() {
         }
         car_initialized = 1;
 #endif
-        //TODO: get these values from a file
-        //set test target coordinates
-        state_data.target_lat = 32.881136091348665;
-        state_data.target_long = -117.23563715815544;
 
         // Spawn device threads
         spawn_device_threads();
         first = 0;
     }
-    next_state = NAVIGATION_STATE;
+
+    if (kill_switch_asserted)
+        next_state = PAUSE_STATE;
+    else
+        next_state = NAVIGATION_STATE;
+
+
     //next_state = TRACK_STATE;
 }

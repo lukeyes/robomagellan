@@ -1,6 +1,7 @@
 enum {
     SWITCH_NO_ERROR = 0,
-    SWITCH_OPEN_TTY_FAIL = -1
+    SWITCH_OPEN_TTY_FAIL = -1,
+    NUM_SWITCH_ERRORS = 2
 } SWITCH_ERROR_CODES;
 
 
@@ -9,4 +10,5 @@ enum {
 extern const char * switch_err_msgs[NUM_SWITCH_ERRORS];
 
 int switch_init();
-double switch_get_state();
+int switch_get_state();
+void switch_close();

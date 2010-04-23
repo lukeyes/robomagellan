@@ -7,15 +7,15 @@
 #include "camera.h"
 #include "gps.h"
 #include "compass.h"
+#include "switch.h"
 
 void done_state() {
     car_set_speed(0);
     car_set_speed(0);
     car_set_speed(0);
     car_set_turn(0);
-    if (debug)
-        system("stty echo");
 
+    switch_close();
     sonar_close();
     camera_close();
     gps_close();
