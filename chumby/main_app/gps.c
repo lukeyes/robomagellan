@@ -39,7 +39,7 @@ int gps_init()
   if(tty > 0)
     close(tty);
 
-  //system("stty -F /dev/gps 4800");
+  system("stty -F /dev/gps 4800");
   tty = open("/dev/gps", O_RDWR | O_NOCTTY);
   if(tty < 0)
     return GPS_OPEN_FAIL;
