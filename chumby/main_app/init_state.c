@@ -20,12 +20,8 @@ void init_state() {
 
     if(first) {
         
-        // Read in target coordinates
-        fscanf(stdin, "target_lat =%lf\ntarget_long = %lf", &state_data.target_lat, &state_data.target_long);
-
         if(debug)
             spawn_debug_thread();
-
 
 #ifdef USE_KILL_SWITCH
         //initialize kill switch
@@ -97,7 +93,6 @@ void init_state() {
         car_initialized = 1;
 #endif
 
-        // Spawn device threads
         spawn_device_threads();
         first = 0;
     }
@@ -106,7 +101,5 @@ void init_state() {
         next_state = PAUSE_STATE;
     else
         next_state = NAVIGATION_STATE;
-
-
     //next_state = TRACK_STATE;
 }

@@ -18,6 +18,7 @@ void object_avoidance_state() {
         }
 
         if(state_data.front_sonar < OBJECT_DETECT_THRESH) {
+#if 0
             if(state_data.front_sonar > 2) //do 20% turn
                 car_set_turn(-20);
             else if(state_data.front_sonar > 1) //do 60% turn
@@ -28,6 +29,14 @@ void object_avoidance_state() {
                 car_set_speed(0);
                 return;
             }
+#endif
+            if(state_data.front_sonar > 0.9){ //do 20% turn
+                car_set_turn(-70);
+            }else {
+                car_set_speed(0);
+                return;
+            }
+
         }
         else
             car_set_turn(0);

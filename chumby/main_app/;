@@ -46,11 +46,11 @@ void exit_routine (int sig);
 
 int main (int argc, char **argv) {
     int current_state;
-//#ifdef USE_GPS
-#if 1
+#ifdef USE_GPS
     FILE * waypoint_file;
     int i=0;
     double * p;
+    double temp;
 #endif
     char c;
     debug = 0;
@@ -61,7 +61,6 @@ int main (int argc, char **argv) {
     // Enable Control-C detection
     signal(SIGINT, exit_routine);
 
-    // Set default speeds
     navigation_speed = 5;
     object_avoidance_speed = 5;
     search_speed = 5;
@@ -91,8 +90,7 @@ int main (int argc, char **argv) {
         }
     }
 
-//#ifdef USE_GPS
-#if 1
+#ifdef USE_GPS
         // Open the waypoint file for reading
         if(!(waypoint_file = fopen("waypoints", "r"))) {
             fprintf(stderr,"main: could not open waypoints file\n");
@@ -112,10 +110,10 @@ int main (int argc, char **argv) {
             fscanf(waypoint_file, "target_lat =%lf\ntarget_long = %lf", p, p+1);
             fgetc(waypoint_file);
         }
-        // Set initial target waypoint
-        state_data.target_lat = waypoints[current_waypoint_idx];
-        state_data.target_long = waypoints[current_waypoint_idx+1];
-
+        for(i=0; i<num_waypoints*2; ++i) {
+            fprintf(stderr, "%lf\n",waypoints[i]);
+        }
+        exit(0);
 #endif
 
     // Begin with init state

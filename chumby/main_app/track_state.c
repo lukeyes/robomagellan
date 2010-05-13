@@ -27,14 +27,16 @@ void track_state() {
         car_set_speed(4);
 
         if((last_cone_pos = state_data.cone_position)) {
+#ifdef USE_SONAR
             if (state_data.front_sonar < .8) {
                 next_state = DONE_STATE;
                 return;
-            } else {
-                turn = last_cone_pos - 79;
-                turn /= 1.1;
-                car_set_turn(turn);
             }
+#endif
+            turn = last_cone_pos - 79;
+            turn /= 1.1;
+            car_set_turn(turn);
+            
         } else {
                 //car_set_turn();
         }

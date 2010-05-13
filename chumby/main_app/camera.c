@@ -31,6 +31,7 @@ int camera_init()
         close(tty);
 
     // Initialize serial to camera
+    
     tty = open("/dev/cam", O_RDWR | O_NOCTTY | O_NONBLOCK);
     if(tty < 0)
         return CAMERA_OPEN_FAIL;
