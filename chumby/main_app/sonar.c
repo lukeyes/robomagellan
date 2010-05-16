@@ -15,8 +15,11 @@
 #include "usb_i2c.h"
 #include "sonar.h"
 
-#define RIGHT_SONAR_ADDR 0xE0
-#define FRONT_SONAR_ADDR 0xE2
+#define RIGHT_SONAR_ADDR 0xE0 //0xE0
+#define FRONT_RIGHT_SONAR_ADDR //0xE2
+#define FRONT_SONAR_ADDR 0xE2 //0xE4
+#define FRONT_LEFT_SONAR_ADDR //0xE6
+#define LEFT_SONAR_ADDR //0xE8
 #define READ_BIT 0x1
 #define RANGE 140
 #define GAIN 0
