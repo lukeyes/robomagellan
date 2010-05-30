@@ -1,7 +1,7 @@
-/*      A module that will set the attached SRF08 to the
- *      specified address.
+/*  Author: Michael Oritz
+ *  Email: mtortiz.mail@gmail.com
+ *  Date: 4/1/2010
  *
- *  Author:     Michael Ortiz (mtortiz.mail@gmail.com)
  */
 
 #include <stdlib.h>
@@ -12,8 +12,14 @@
 #define BROADCAST_ADDR 0X00
 
 //SRF08 registers
-#define SW_REV_REG  0   //RO
-#define COMM_REG    0   //WO
+#define SW_REV_REG          0   //RO
+#define COMMAND_REG         0   //WO
+#define LIGHT_SENSOR_REG    1   //RO
+#define MAX_GAIN_REG        1   //WO
+#define RANGE_REG           2   //WO
+//valid echo numbers: 1-17
+#define ECHO_HI_BYTE(_echoNum) ((_echoNum)*2) //R0
+#define ECHO_LO_BYTE(_echoNum) ((_echoNum)*2 + 1) //RO
 
 //Address change command sequence
 #define FIRST_ADDR_CHANGE_COMM 0XA0
@@ -38,14 +44,6 @@ int main()
         return -1;
     }
 
-    fprintf(stderr, "Enter new address (0XE0 - 0XFE): ");
-    fscanf(stdin, "%x", &new_addr);
-    
-    if(new_addr & 0x01) {
-        fprintf(stderr, "Address must be even\n");
-        close(tty);
-        return -1;
-    }
 
     fprintf(stderr, "Identifying current address...\n");
     for(cur_addr = 0XE0; cur_addr <= 0xFE; cur_addr += 2) {
@@ -65,7 +63,7 @@ int main()
         }
     }
 
-    if(sw_rev == 0x255) {
+    if(sw_rev == 0xFF) {
         fprintf(stderr, "Could not identify current address\n");
         close(tty);
         return -1;
@@ -73,25 +71,34 @@ int main()
 
     fprintf(stderr, "Current address: 0X%X\n", cur_addr);
     fprintf(stderr, "Software Revision: %d\n", sw_rev);
+
+    fprintf(stderr, "Enter new address (0XE0 - 0XFE): ");
+    fscanf(stdin, "%x", &new_addr);
+    
+    if(new_addr & 0x01) {
+        fprintf(stderr, "Address must be even\n");
+        close(tty);
+        return -1;
+    }
     fprintf(stderr, "Changing address from 0X%X to 0X%X...\n", cur_addr, new_addr);
 
     //Set the new address
-    if(write_i2c(tty, cur_addr, COMM_REG, 1, FIRST_ADDR_CHANGE_COMM) < 0) {
+    if(write_i2c(tty, cur_addr, COMMAND_REG, 1, FIRST_ADDR_CHANGE_COMM) < 0) {
         fprintf(stderr, "I2C write fail\n");
         close(tty);
         return -1;
     }
-    if(write_i2c(tty, cur_addr, COMM_REG, 1, SECOND_ADDR_CHANGE_COMM) < 0) {
+    if(write_i2c(tty, cur_addr, COMMAND_REG, 1, SECOND_ADDR_CHANGE_COMM) < 0) {
         fprintf(stderr, "I2C write fail\n");
         close(tty);
         return -1;
     }
-    if(write_i2c(tty, cur_addr, COMM_REG, 1, THIRD_ADDR_CHANGE_COMM) < 0) {
+    if(write_i2c(tty, cur_addr, COMMAND_REG, 1, THIRD_ADDR_CHANGE_COMM) < 0) {
         fprintf(stderr, "I2C write fail\n");
         close(tty);
         return -1;
     }
-    if(write_i2c(tty, cur_addr, COMM_REG, 1, new_addr) < 0) {
+    if(write_i2c(tty, cur_addr, COMMAND_REG, 1, new_addr) < 0) {
         fprintf(stderr, "I2C write fail\n");
         close(tty);
         return -1;
