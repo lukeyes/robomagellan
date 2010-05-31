@@ -16,32 +16,19 @@
 /* Constants used by this program                                         */
 /**************************************************************************/
 #define SERVER_PORT     3555
-#define BUFFER_LENGTH    1024
+#define BUF_LENGTH    15000
 #define SERVER_NAME     "10.0.50.1"
 
-/* Pass in 1 parameter which is either the */
-/* address or host name of the server, or  */
-/* set the server name in the #define      */
-/* SERVER_NAME                             */
 int main(int argc, char *argv[])
 {
-    /***********************************************************************/
-    /* Variable and structure definitions.                                 */
-    /***********************************************************************/
-    int    sd, rc;
+    int    sd, rc, i, row=0;
     char   server[32];
-    char   buffer[BUFFER_LENGTH];
+    char   buf[BUF_LENGTH];
     struct sockaddr_in serveraddr;
     unsigned int    serveraddrlen = sizeof(serveraddr);
 
     do
     {
-        /********************************************************************/
-        /* The socket() function returns a socket descriptor representing   */
-        /* an endpoint.  The statement also identifies that the INET        */
-        /* (Internet Protocol) address family with the UDP transport        */
-        /* (SOCK_STREAM) will be used for this socket.                      */
-        /********************************************************************/
         sd = socket(AF_INET, SOCK_DGRAM, 0);
         if (sd < 0)
         {
@@ -56,16 +43,10 @@ int main(int argc, char *argv[])
         serveraddr.sin_port        = htons(SERVER_PORT);
         serveraddr.sin_addr.s_addr = inet_addr(server);
 
-        /********************************************************************/
-        /* Initialize the data block that is going to be sent to the server */
-        /********************************************************************/
-        memset(buffer, 0, sizeof(buffer));
-        strcpy(buffer, "KATHERINE VILCHEZ IS AMAZINGLY BEAUTIFUL, SMART, AND PRECIOUS TO HER BOYFRIEND MICHAEL ORTIZ");
+        memset(buf, 0, sizeof(buf));
+        strcpy(buf, "SEND RAW IMAGE");
 
-        /********************************************************************/
-        /* Use the sendto() function to send the data to the server.        */
-        /********************************************************************/
-        rc = sendto(sd, buffer, sizeof(buffer), 0,
+        rc = sendto(sd, buf, strlen(buf), 0,
                   (struct sockaddr *)&serveraddr,
                   sizeof(serveraddr));
         if (rc < 0)
@@ -74,33 +55,27 @@ int main(int argc, char *argv[])
             break;
         }
 
-        /********************************************************************/
-        /* Use the recvfrom() function to receive the data back from the    */
-        /* server.                                                          */
-        /********************************************************************/
-        rc = recvfrom(sd, buffer, sizeof(buffer), 0,
-                    (struct sockaddr *)&serveraddr,
-                    & serveraddrlen);
-        if (rc < 0)
-        {
-            fprintf(stderr, "recvfrom() failed\n");
-            break;
+        while (1) {
+            rc = recvfrom(sd, buf, sizeof(buf), 0,
+                        (struct sockaddr *)&serveraddr,
+                        & serveraddrlen);
+            if (rc < 0)
+            {
+                fprintf(stderr, "recvfrom() failed\n");
+                break;
+            }
+
+            for(i=0; i<rc; ++i) {
+                fprintf(stderr, "%x ", (unsigned char)buf[i]);
+            }
+
+            fprintf(stderr, "\n[row %d], %d bytes received", ++row, rc);
+            fprintf(stderr, "from port %d, from address %s\n\n",
+                ntohs(serveraddr.sin_port),
+                inet_ntoa(serveraddr.sin_addr));
         }
-
-        printf("client received the following:\n<%s>\n", buffer);
-        printf("from port %d, from address %s\n",
-             ntohs(serveraddr.sin_port),
-             inet_ntoa(serveraddr.sin_addr));
-
-        /********************************************************************/
-        /* Program complete                                                 */
-        /********************************************************************/
-
     } while (0);
 
-    /***********************************************************************/
-    /* Close down any open socket descriptors                              */
-    /***********************************************************************/
     if (sd != -1)
         close(sd);
 
