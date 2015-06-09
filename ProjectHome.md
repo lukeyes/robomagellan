@@ -1,0 +1,1 @@
+Contains all source code for an autonomous robotic car capable of navigating a multi-terrain obstacle course from a specified gps coordinate start point to a specified gps coordinate endpoint. For more info visit: http://robogames.net/rules/magellan.php. This project is maintained by the Robomagellan UCSD IEEE student project group.
